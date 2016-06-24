@@ -1,6 +1,5 @@
 //
 //  Utils.swift
-//  On The Map
 //
 //  Created by Sascha Stanic on 06.05.16.
 //  Copyright © 2016 Sascha Stanic. All rights reserved.

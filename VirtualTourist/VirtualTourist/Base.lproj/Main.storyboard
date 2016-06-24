@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
     </dependencies>
@@ -81,6 +80,10 @@
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
+                                <activityIndicatorView key="backgroundView" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" id="vI8-YE-Cgm">
+                                    <rect key="frame" x="0.0" y="-64" width="600" height="348"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                </activityIndicatorView>
                                 <cells>
                                     <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="collectionViewCell" id="DIR-GL-mJN" customClass="CustomCollectionViewCell" customModule="VirtualTourist" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="64" width="100" height="100"/>
@@ -89,19 +92,16 @@
                                             <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="6TM-xe-ZDu" userLabel="Tourist Image">
-                                                    <rect key="frame" x="5" y="5" width="90" height="90"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="width" secondItem="6TM-xe-ZDu" secondAttribute="height" multiplier="1:1" id="MAQ-RX-nYz"/>
-                                                    </constraints>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="6TM-xe-ZDu" userLabel="Tourist Image">
+                                                    <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                                 </imageView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
+                                            <constraint firstItem="6TM-xe-ZDu" firstAttribute="height" secondItem="DIR-GL-mJN" secondAttribute="height" id="Eh3-by-UrK"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="centerX" secondItem="DIR-GL-mJN" secondAttribute="centerX" id="YxE-dq-sMu"/>
-                                            <constraint firstItem="6TM-xe-ZDu" firstAttribute="width" secondItem="DIR-GL-mJN" secondAttribute="width" multiplier="0.9" id="dUg-56-5ap"/>
+                                            <constraint firstItem="6TM-xe-ZDu" firstAttribute="width" secondItem="DIR-GL-mJN" secondAttribute="width" id="dUg-56-5ap"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="centerY" secondItem="DIR-GL-mJN" secondAttribute="centerY" id="guC-eb-Aid"/>
                                         </constraints>
                                         <connections>
@@ -120,16 +120,23 @@
                                     <action selector="reloadImages:" destination="skv-Yh-u8t" eventType="touchUpInside" id="y6R-0G-oUw"/>
                                 </connections>
                             </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="No images" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="oDY-5N-d7v">
+                                <rect key="frame" x="257" y="290" width="86" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="Pd7-TO-fmk" secondAttribute="trailing" constant="-20" id="0m3-Ga-tC6"/>
+                            <constraint firstItem="oDY-5N-d7v" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="2fw-iv-GDu"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="leading" secondItem="we8-P9-b7f" secondAttribute="leadingMargin" constant="-20" id="7wf-Du-FN7"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="top" secondItem="van-bu-jVV" secondAttribute="bottom" constant="8" id="BwM-gs-rmI"/>
                             <constraint firstAttribute="trailingMargin" secondItem="van-bu-jVV" secondAttribute="trailing" constant="-20" id="Jxv-Ul-bPN"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="height" secondItem="we8-P9-b7f" secondAttribute="height" multiplier="0.25" id="OvC-pv-99u"/>
                             <constraint firstItem="van-bu-jVV" firstAttribute="top" secondItem="Pd7-TO-fmk" secondAttribute="bottom" id="YlX-Ds-egn"/>
                             <constraint firstItem="van-bu-jVV" firstAttribute="leading" secondItem="we8-P9-b7f" secondAttribute="leadingMargin" constant="-20" id="dsn-7L-9zv"/>
+                            <constraint firstItem="oDY-5N-d7v" firstAttribute="centerY" secondItem="we8-P9-b7f" secondAttribute="centerY" id="fsa-By-Xa4"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="k8D-vX-zUk"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="nyc-xR-dI4"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="width" secondItem="we8-P9-b7f" secondAttribute="width" id="pOU-af-g1t"/>
@@ -139,8 +146,10 @@
                     </view>
                     <navigationItem key="navigationItem" id="WrN-Fl-IK7"/>
                     <connections>
+                        <outlet property="activityIndicator" destination="vI8-YE-Cgm" id="5MJ-Nd-Y9b"/>
                         <outlet property="collectionViewFlowLayout" destination="vWK-FU-ZvB" id="WIz-b1-Fbu"/>
                         <outlet property="mapView" destination="Pd7-TO-fmk" id="bdU-1H-gXN"/>
+                        <outlet property="noImagesTextField" destination="oDY-5N-d7v" id="fGK-aC-Mrv"/>
                         <outlet property="photoAlbumCollectionView" destination="van-bu-jVV" id="pZP-1E-OLq"/>
                         <outlet property="reloadButton" destination="Fhn-WW-7lh" id="8hq-BL-Mf2"/>
                     </connections>

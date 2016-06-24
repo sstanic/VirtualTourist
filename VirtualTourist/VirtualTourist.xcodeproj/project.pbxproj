@@ -7,7 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		123752001D1912C500BAB15E /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123751FF1D1912C500BAB15E /* CoreDataStack.swift */; };
+		123752051D1912E600BAB15E /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123752011D1912E600BAB15E /* Pin+CoreDataProperties.swift */; };
+		123752061D1912E600BAB15E /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123752021D1912E600BAB15E /* Pin.swift */; };
+		123752071D1912E600BAB15E /* ImageData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123752031D1912E600BAB15E /* ImageData+CoreDataProperties.swift */; };
+		123752081D1912E600BAB15E /* ImageData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123752041D1912E600BAB15E /* ImageData.swift */; };
 		123CE7141D09FC680071A8F6 /* CustomCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CE7131D09FC680071A8F6 /* CustomCollectionViewCell.swift */; };
+		123CE7161D0A5F790071A8F6 /* WSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CE7151D0A5F790071A8F6 /* WSClient.swift */; };
+		123CE7181D0A5FDA0071A8F6 /* WSClientConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CE7171D0A5FDA0071A8F6 /* WSClientConstants.swift */; };
+		123CE71C1D0B43380071A8F6 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CE71B1D0B43380071A8F6 /* DataStore.swift */; };
+		123CE71E1D0B73F50071A8F6 /* MapItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CE71D1D0B73F50071A8F6 /* MapItem.swift */; };
+		1269838C1D1CECCC00E12F14 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1269838B1D1CECCC00E12F14 /* Constants.swift */; };
 		129F5CB31D078BB700346422 /* externalResources in Resources */ = {isa = PBXBuildFile; fileRef = 129F5CB21D078BB700346422 /* externalResources */; };
 		129F5CB61D078C2200346422 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129F5CB51D078C2200346422 /* Utils.swift */; };
 		129F5CB81D07901E00346422 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129F5CB71D07901E00346422 /* PhotoAlbumViewController.swift */; };
@@ -20,7 +30,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		123751FF1D1912C500BAB15E /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+		123752011D1912E600BAB15E /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		123752021D1912E600BAB15E /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
+		123752031D1912E600BAB15E /* ImageData+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ImageData+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		123752041D1912E600BAB15E /* ImageData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageData.swift; sourceTree = "<group>"; };
 		123CE7131D09FC680071A8F6 /* CustomCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCollectionViewCell.swift; sourceTree = "<group>"; };
+		123CE7151D0A5F790071A8F6 /* WSClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WSClient.swift; sourceTree = "<group>"; };
+		123CE7171D0A5FDA0071A8F6 /* WSClientConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WSClientConstants.swift; sourceTree = "<group>"; };
+		123CE71B1D0B43380071A8F6 /* DataStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
+		123CE71D1D0B73F50071A8F6 /* MapItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapItem.swift; sourceTree = "<group>"; };
+		1269838B1D1CECCC00E12F14 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		129F5CB21D078BB700346422 /* externalResources */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = externalResources; sourceTree = "<group>"; };
 		129F5CB51D078C2200346422 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		129F5CB71D07901E00346422 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
@@ -45,6 +65,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		123751FE1D19119300BAB15E /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				123CE71B1D0B43380071A8F6 /* DataStore.swift */,
+				123CE71D1D0B73F50071A8F6 /* MapItem.swift */,
+			);
+			name = Data;
+			sourceTree = "<group>";
+		};
 		129F5CAD1D078B3300346422 /* Storyboards */ = {
 			isa = PBXGroup;
 			children = (
@@ -74,6 +103,11 @@
 		129F5CB01D078B4A00346422 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				123752011D1912E600BAB15E /* Pin+CoreDataProperties.swift */,
+				123752021D1912E600BAB15E /* Pin.swift */,
+				123752031D1912E600BAB15E /* ImageData+CoreDataProperties.swift */,
+				123752041D1912E600BAB15E /* ImageData.swift */,
+				123751FF1D1912C500BAB15E /* CoreDataStack.swift */,
 				12EC389D1D067F430089CAAE /* VirtualTourist.xcdatamodeld */,
 			);
 			name = Model;
@@ -82,6 +116,8 @@
 		129F5CB11D078B5D00346422 /* Client */ = {
 			isa = PBXGroup;
 			children = (
+				123CE7151D0A5F790071A8F6 /* WSClient.swift */,
+				123CE7171D0A5FDA0071A8F6 /* WSClientConstants.swift */,
 			);
 			name = Client;
 			sourceTree = "<group>";
@@ -115,12 +151,14 @@
 			children = (
 				129F5CB21D078BB700346422 /* externalResources */,
 				129F5CAD1D078B3300346422 /* Storyboards */,
+				123751FE1D19119300BAB15E /* Data */,
 				129F5CB01D078B4A00346422 /* Model */,
 				129F5CAF1D078B4400346422 /* Controller */,
 				129F5CAE1D078B3D00346422 /* View */,
 				129F5CB11D078B5D00346422 /* Client */,
 				129F5CB41D078BE500346422 /* Tools */,
 				12EC38961D067F430089CAAE /* AppDelegate.swift */,
+				1269838B1D1CECCC00E12F14 /* Constants.swift */,
 				12EC38A01D067F430089CAAE /* Assets.xcassets */,
 				12EC38A51D067F430089CAAE /* Info.plist */,
 			);
@@ -200,10 +238,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				123CE7181D0A5FDA0071A8F6 /* WSClientConstants.swift in Sources */,
 				12EC38991D067F430089CAAE /* MapViewController.swift in Sources */,
+				123CE71E1D0B73F50071A8F6 /* MapItem.swift in Sources */,
 				123CE7141D09FC680071A8F6 /* CustomCollectionViewCell.swift in Sources */,
+				123CE71C1D0B43380071A8F6 /* DataStore.swift in Sources */,
+				123752001D1912C500BAB15E /* CoreDataStack.swift in Sources */,
+				123752081D1912E600BAB15E /* ImageData.swift in Sources */,
+				1269838C1D1CECCC00E12F14 /* Constants.swift in Sources */,
+				123752061D1912E600BAB15E /* Pin.swift in Sources */,
 				12EC38971D067F430089CAAE /* AppDelegate.swift in Sources */,
+				123752071D1912E600BAB15E /* ImageData+CoreDataProperties.swift in Sources */,
 				12EC389F1D067F430089CAAE /* VirtualTourist.xcdatamodeld in Sources */,
+				123CE7161D0A5F790071A8F6 /* WSClient.swift in Sources */,
+				123752051D1912E600BAB15E /* Pin+CoreDataProperties.swift in Sources */,
 				129F5CB81D07901E00346422 /* PhotoAlbumViewController.swift in Sources */,
 				129F5CB61D078C2200346422 /* Utils.swift in Sources */,
 			);

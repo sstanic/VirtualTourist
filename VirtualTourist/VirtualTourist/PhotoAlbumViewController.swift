@@ -16,13 +16,29 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     @IBOutlet weak var collectionViewFlowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var reloadButton: UIButton!
     
-    var images = [UIImage]()
+    
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var noImagesTextField: UITextField!
+
+    let regionRadius: CLLocationDistance = 1000
+    var isMapInitialized = false
+    
+    var pin: Pin!
+    var imageDatas = [ImageData]()
+    var images = [String:UIImage]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        noImagesTextField.hidden = true
         initializeCollectionView()
-        initializeTestImages()
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        showPinOnMap(pin)
+        setCurrentLocation(pin)
+        
+        loadImages(pin)
     }
     
     private func initializeCollectionView() {
@@ -47,40 +63,146 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
         
         collectionViewFlowLayout.minimumInteritemSpacing = space
-        collectionViewFlowLayout.minimumLineSpacing = space / 4
+        collectionViewFlowLayout.minimumLineSpacing = space
         collectionViewFlowLayout.itemSize = CGSizeMake(dimension, dimension)
     }
     
-    private func initializeTestImages() {
-        for _ in 0...20 {
-            let img = UIImage(named: "testImage")
-            images.append(img!)
+    private func showPinOnMap(pin: Pin) {
+        
+        let location = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
+        let mapItem = MapItem(title: pin.title!, subtitle: "", location: location)
+        mapView.addAnnotation(mapItem)
+    }
+    
+    private func setCurrentLocation(pin: Pin) {
+        
+        let coordinate = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
+        let coordinateRegion = MKCoordinateRegionMakeWithDistance(coordinate, regionRadius * 2.0, regionRadius * 2.0)
+        mapView.setRegion(coordinateRegion, animated: true)
+    }
+    
+    private func createEmptyImageDictionary(imageDataList: [ImageData]) -> [String:UIImage] {
+        var images = [String:UIImage]()
+        
+        if imageDataList.count > 0 {
+            for imageData in imageDataList {
+                let image = UIImage(named: "placeholder")
+                images[imageData.url!] = image
+            }
+        }
+        
+        return images
+    }
+    
+    private func loadImages(pin: Pin) {
+        
+        noImagesTextField.hidden = true
+        
+        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
+        
+        DataStore.sharedInstance().getImages(pin) { (success, results, error) in
+            
+            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
+            
+            let resultsCount = results.imageData?.count
+            
+            if success {
+                if resultsCount > 0 {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        
+                        self.imageDatas = results.imageData?.allObjects as! [ImageData]
+                        self.images = self.createEmptyImageDictionary(self.imageDatas)
+                        
+                        self.photoAlbumCollectionView.reloadData()
+                        
+                        self.loadImages()
+                    }
+                }
+                else {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        self.noImagesTextField.hidden = false
+                    }
+                }
+            }
+            else {
+                // TODO: some problem occured
+            }
+        }
+    }
+    
+    private func loadImages() {
+        
+        reloadButton.enabled = false
+        photoAlbumCollectionView.alpha = 0.5
+        
+        dispatch_async(Utils.GlobalBackgroundQueue) {
+            
+            let downloadGroup = dispatch_group_create()
+            
+            for imageData in self.imageDatas {
+                
+                let photo_url = imageData.url!
+                
+                dispatch_group_enter(downloadGroup)
+                
+                if let url = NSURL(string: photo_url) {
+                    
+                    if let data = NSData(contentsOfURL: url) {
+                        let img = UIImage(data: data)
+                        
+                        dispatch_async(Utils.GlobalMainQueue) {
+                            if let image = img {
+                                self.images[photo_url] = image
+                            }
+                            
+                            self.photoAlbumCollectionView.reloadData()
+                        }
+                    }
+                }
+                dispatch_group_leave(downloadGroup)
+            }
+            
+            dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
+            dispatch_async(Utils.GlobalMainQueue) {
+                self.reloadButton.enabled = true
+                self.photoAlbumCollectionView.alpha = 1.0
+            }
         }
     }
     
     @IBAction func reloadImages(sender: AnyObject) {
     }
     
+    private func deleteImage(index: Int) {
+        
+        let imageData = imageDatas[index]
+        images.removeValueForKey(imageData.url!)
+        imageDatas.removeAtIndex(index)
+        
+        DataStore.sharedInstance().deleteImageData(imageData)
+    }
     
     //#MARK: - UICollectionViewDelegate
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        
-        images.removeAtIndex(indexPath.row)
+
+        deleteImage(indexPath.row)
         collectionView.deleteItemsAtIndexPaths([indexPath])
     }
     
     
     //#MARK: - UICollectionViewDataSource
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return images.count
+        return imageDatas.count
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("collectionViewCell", forIndexPath: indexPath) as! CustomCollectionViewCell
-
-        let img = images[indexPath.row]
-        cell.imageView.image = img
+        
+        let imageData = imageDatas[indexPath.row]
+        cell.imageView.image = images[imageData.url!]
         
         return cell
     }
