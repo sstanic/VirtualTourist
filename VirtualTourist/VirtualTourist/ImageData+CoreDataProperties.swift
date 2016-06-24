@@ -2,7 +2,7 @@
 //  ImageData+CoreDataProperties.swift
 //  VirtualTourist
 //
-//  Created by Sascha Stanic on 20.06.16.
+//  Created by Sascha Stanic on 24.06.16.
 //  Copyright © 2016 Sascha Stanic. All rights reserved.
 //
 //  Choose "Create NSManagedObject Subclass…" from the Core Data editor menu
@@ -15,6 +15,7 @@ import CoreData
 extension ImageData {
 
     @NSManaged var url: String?
+    @NSManaged var image: NSData?
     @NSManaged var pin: Pin?
 
 }

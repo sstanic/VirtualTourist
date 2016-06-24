@@ -147,21 +147,28 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 
                 dispatch_group_enter(downloadGroup)
                 
-                if let url = NSURL(string: photo_url) {
-                    
-                    if let data = NSData(contentsOfURL: url) {
-                        let img = UIImage(data: data)
+                if imageData.image == nil {
+                    if let url = NSURL(string: photo_url) {
                         
-                        dispatch_async(Utils.GlobalMainQueue) {
+                        if let data = NSData(contentsOfURL: url) {
+                            let img = UIImage(data: data)
+                            
                             if let image = img {
                                 self.images[photo_url] = image
+                                self.addImageToImageData(image, imageData: imageData)
                             }
-                            
-                            self.photoAlbumCollectionView.reloadData()
                         }
                     }
                 }
+                else {
+                    self.images[photo_url] = UIImage(data: imageData.image!)
+                }
+                
                 dispatch_group_leave(downloadGroup)
+                
+                dispatch_async(Utils.GlobalMainQueue) {
+                    self.photoAlbumCollectionView.reloadData()
+                }
             }
             
             dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
@@ -169,7 +176,26 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 self.reloadButton.enabled = true
                 self.photoAlbumCollectionView.alpha = 1.0
             }
+            
+            DataStore.sharedInstance().saveContext()
         }
+    }
+    
+    private func addImageToImageData(image: UIImage, imageData: ImageData) {
+        let url = imageData.url!
+        
+        if url.hasSuffix("jpg") {
+            imageData.image = UIImageJPEGRepresentation(image, 1.0)
+            return
+        }
+        
+        if url.hasSuffix("png") {
+            imageData.image = UIImagePNGRepresentation(image)
+            return
+        }
+        
+        imageData.image = nil
+        print("imagetype unknown for url <\(url)>")
     }
     
     @IBAction func reloadImages(sender: AnyObject) {

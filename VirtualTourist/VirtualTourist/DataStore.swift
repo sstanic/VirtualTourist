@@ -42,11 +42,23 @@ class DataStore: NSObject {
     func deleteImageData(imageData: ImageData) {
         
         stack.context.deleteObject(imageData)
+
         do {
-            try stack.context.save()
+            try self.stack.context.save()
         }
         catch {
             print("error :-o") //TODO: Add completion handler
+        }
+    }
+    
+    func saveContext() {
+        if stack.context.hasChanges {
+            do {
+                try self.stack.context.save()
+            }
+            catch {
+                print("error :-o") //TODO: Add completion handler
+            }
         }
     }
     
@@ -101,6 +113,7 @@ class DataStore: NSObject {
                     }
                     
                     pin.imageData = NSSet(array: imageDataList)
+
                     do {
                         try self.stack.context.save()
                     }
