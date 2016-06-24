@@ -12,7 +12,7 @@ import MapKit
 class MapItem: NSObject, MKAnnotation {
 
     let subtitle: String?
-    let coordinate: CLLocationCoordinate2D
+    var coordinate: CLLocationCoordinate2D
     
     var pin: Pin?
     

@@ -31,11 +31,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
 
     private func initializeMap() {
-        let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(createNewPin))
-        gestureRecognizer.minimumPressDuration = 0.5
         
-        mapView.addGestureRecognizer(gestureRecognizer)
         mapView.delegate = self
+        
+        let gestureRecognizerLongPress = UILongPressGestureRecognizer(target: self, action: #selector(createNewPin))
+        gestureRecognizerLongPress.minimumPressDuration = 0.5
+        mapView.addGestureRecognizer(gestureRecognizerLongPress)
         
         // init region
         let latitude = NSUserDefaults.standardUserDefaults().doubleForKey(Constants.MapLatitude)
@@ -135,25 +136,29 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     //# MARK: - MKMapViewDelegate
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
-        if let annotation = annotation as? MapItem {
-            let identifier = "pin"
-            var view: MKPinAnnotationView
-            
-            if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
-                as? MKPinAnnotationView {
-                dequeuedView.annotation = annotation
-                view = dequeuedView
-                
-            } else {
-                view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                view.canShowCallout = true
-                view.calloutOffset = CGPoint(x: -5, y: 5)
-                let btn = UIButton(type: .DetailDisclosure)
-                view.rightCalloutAccessoryView = btn as UIView
-            }
-            return view
+        if annotation is MKUserLocation {
+            return nil
         }
-        return nil
+
+        let identifier = "pin"
+        var view: MKPinAnnotationView
+        
+        if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier) as? MKPinAnnotationView {
+            
+            dequeuedView.annotation = annotation
+            view = dequeuedView
+        }
+        else {
+            
+            view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            view.canShowCallout = true
+            view.calloutOffset = CGPoint(x: -5, y: 5)
+            let btn = UIButton(type: .DetailDisclosure)
+            view.rightCalloutAccessoryView = btn as UIView
+            view.draggable = true
+        }
+        
+        return view
     }
     
     func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
@@ -167,11 +172,43 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
+    //Remark: Removed navigation on click to be able to drag and drop the pin
+//    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+//        if let mapItem = view.annotation as? MapItem {
+//            if let pin = mapItem.pin {
+//                showImages(pin)
+//            }
+//        }
+//    }
+    
+    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
+        
+        if newState == MKAnnotationViewDragState.Ending {
+            
+            if let mapItem = view.annotation as? MapItem {
+                
+                dispatch_async(Utils.GlobalBackgroundQueue) {
+                    self.geocodeMapItem(mapItem) { (success, error) in
+                        
+                        let pin = mapItem.pin
+                        pin?.latitude = mapItem.coordinate.latitude
+                        pin?.longitude = mapItem.coordinate.longitude
+                        
+                        pin?.title = mapItem.title
+                        DataStore.sharedInstance().reloadImages(pin!) { (success, results, error) in
+                            DataStore.sharedInstance().saveContext()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.center.latitude, forKey: Constants.MapLatitude)
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.center.longitude, forKey: Constants.MapLongitude)
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.latitudeDelta, forKey: Constants.MapLatitudeDelta)
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.longitudeDelta, forKey: Constants.MapLongitudeDelta)
-
     }
 }

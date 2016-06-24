@@ -3,16 +3,16 @@
     <entity name="ImageData" representedClassName=".ImageData" syncable="YES">
         <attribute name="image" optional="YES" attributeType="Binary" storedInTruthFile="YES" syncable="YES"/>
         <attribute name="url" attributeType="String" syncable="YES"/>
-        <relationship name="pin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="imageData" inverseEntity="Pin" syncable="YES"/>
+        <relationship name="pin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="imageDatas" inverseEntity="Pin" syncable="YES"/>
     </entity>
     <entity name="Pin" representedClassName=".Pin" syncable="YES">
         <attribute name="latitude" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="longitude" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="imageData" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageData" inverseName="pin" inverseEntity="ImageData" syncable="YES"/>
+        <relationship name="imageDatas" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageData" inverseName="pin" inverseEntity="ImageData" syncable="YES"/>
     </entity>
     <elements>
         <element name="ImageData" positionX="324" positionY="-63" width="128" height="90"/>
-        <element name="Pin" positionX="-63" positionY="-18" width="128" height="103"/>
+        <element name="Pin" positionX="-63" positionY="-18" width="128" height="105"/>
     </elements>
 </model>

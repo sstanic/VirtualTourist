@@ -63,13 +63,9 @@ class DataStore: NSObject {
     }
     
     func loadPins() {
-        // Initialize Fetch Request
+
         let fetchRequest = NSFetchRequest()
-        
-        // Create Entity Description
         let entityDescription = NSEntityDescription.entityForName("Pin", inManagedObjectContext: self.stack.context)
-        
-        // Configure Fetch Request
         fetchRequest.entity = entityDescription
         
         do {
@@ -84,14 +80,14 @@ class DataStore: NSObject {
     
     
     //# MARK: Get Images
-    func getImages(pin: Pin, loadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+    func getImages(pin: Pin, getCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
         
-        if pin.imageData?.count > 0 {
+        if pin.imageDatas?.count > 0 {
             print("Using locally saved image data.")
-            loadCompletionHandler(success: true, results: pin, error: nil)
+            getCompletionHandler(success: true, results: pin, error: nil)
         }
         else {
         
@@ -101,18 +97,18 @@ class DataStore: NSObject {
             
             WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
                 
-                var imageDataList = [ImageData]()
+                self.notifyLoadingData(false)
+                var imageDatas = [ImageData]()
                 
                 if success {
-                    self.notifyLoadingData(false)
                     
                     // create image entities
                     for result in results! {
                         let imageData = self.createImageData(result)
-                        imageDataList.append(imageData)
+                        imageDatas.append(imageData)
                     }
                     
-                    pin.imageData = NSSet(array: imageDataList)
+                    pin.imageDatas = NSSet(array: imageDatas)
 
                     do {
                         try self.stack.context.save()
@@ -122,16 +118,73 @@ class DataStore: NSObject {
                     }
                     
                     // return with success
-                    loadCompletionHandler(success: true, results: pin, error: nil)
+                    getCompletionHandler(success: true, results: pin, error: nil)
                 }
                 else {
                     self.notifyLoadingData(false)
-                    loadCompletionHandler(success: false, results: pin, error: error)
+                    getCompletionHandler(success: false, results: pin, error: error)
                 }
             }
         }
     }
 
+    func reloadImages(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+        
+        let lat = Double(pin.latitude!)
+        let lon = Double(pin.longitude!)
+        
+        print("Reloading image data from flickr.")
+        
+        self.notifyLoadingData(true)
+        
+        WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
+            
+            self.notifyLoadingData(false)
+            var imageDatas = [ImageData]()
+            
+            if success {
+                
+                // create image entities
+                for result in results! {
+                    
+                    let imageData = self.createImageData(result)
+                    
+                    // check existing image data, if url is known
+                    let filter = NSPredicate(format: "url == %@", result)
+                    let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
+                    
+                    // if there is a result, use the local image
+                    if filteredImages?.count > 0 {
+                        let filteredImageData = filteredImages?.first as? ImageData
+                        imageData.image = filteredImageData?.image
+                        
+                        print("found url in local image data: \(result)")
+                    }
+                    else {
+                        print("url not found in local image data: \(result)")
+                    }
+                    
+                    imageDatas.append(imageData)
+                }
+                
+                pin.imageDatas = NSSet(array: imageDatas)
+                
+                do {
+                    try self.stack.context.save()
+                }
+                catch {
+                    // TODO: do something with the error
+                }
+                
+                // return with success
+                reloadCompletionHandler(success: true, results: pin, error: nil)
+            }
+            else {
+                self.notifyLoadingData(false)
+                reloadCompletionHandler(success: false, results: pin, error: error)
+            }
+        }
+    }
     
     //# MARK: Notifications
     private func notifyLoadingData(isLoading: Bool) {

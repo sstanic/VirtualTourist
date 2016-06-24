@@ -104,19 +104,19 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             
             Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             
-            let resultsCount = results.imageData?.count
+            let resultsCount = results.imageDatas?.count
             
             if success {
                 if resultsCount > 0 {
                     
                     dispatch_async(Utils.GlobalMainQueue) {
                         
-                        self.imageDatas = results.imageData?.allObjects as! [ImageData]
+                        self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
                         self.images = self.createEmptyImageDictionary(self.imageDatas)
                         
                         self.photoAlbumCollectionView.reloadData()
                         
-                        self.loadImages()
+                        self.createUIImages()
                     }
                 }
                 else {
@@ -132,7 +132,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
     
-    private func loadImages() {
+    private func createUIImages() {
         
         reloadButton.enabled = false
         photoAlbumCollectionView.alpha = 0.5
@@ -199,6 +199,41 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     }
     
     @IBAction func reloadImages(sender: AnyObject) {
+        
+        noImagesTextField.hidden = true
+        
+        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
+        
+        DataStore.sharedInstance().reloadImages(pin) { (success, results, error) in
+            
+            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
+            
+            let resultsCount = results.imageDatas?.count
+            
+            if success {
+                if resultsCount > 0 {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        
+                        self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
+                        self.images = self.createEmptyImageDictionary(self.imageDatas)
+                        
+                        self.photoAlbumCollectionView.reloadData()
+                        
+                        self.createUIImages()
+                    }
+                }
+                else {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        self.noImagesTextField.hidden = false
+                    }
+                }
+            }
+            else {
+                // TODO: some problem occured
+            }
+        }
     }
     
     private func deleteImage(index: Int) {

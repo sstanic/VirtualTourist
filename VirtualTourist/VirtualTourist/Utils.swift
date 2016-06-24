@@ -51,26 +51,30 @@ class Utils {
     //# MARK: Activity Indicator
     static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
         
-        activityIndicator.startAnimating()
-        activityIndicator.hidden = false
-        view.userInteractionEnabled = false
-        
-        for subview in view.subviews {
-            subview.alpha = 0.3
+        dispatch_async(Utils.GlobalMainQueue) {
+            activityIndicator.startAnimating()
+            activityIndicator.hidden = false
+            view.userInteractionEnabled = false
+            
+            for subview in view.subviews {
+                subview.alpha = 0.3
+            }
+            
+            // do not 'hide' the activity indicator
+            activityIndicator.alpha = 1.0
         }
-        
-        // do not 'hide' the activity indicator
-        activityIndicator.alpha = 1.0
     }
     
     static func hideActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
         
-        activityIndicator.stopAnimating()
-        activityIndicator.hidden = true
-        view.userInteractionEnabled = true
-        
-        for subview in view.subviews {
-            subview.alpha = 1.0
+        dispatch_async(Utils.GlobalMainQueue) {
+            activityIndicator.stopAnimating()
+            activityIndicator.hidden = true
+            view.userInteractionEnabled = true
+            
+            for subview in view.subviews {
+                subview.alpha = 1.0
+            }
         }
     }
 }
