@@ -80,10 +80,6 @@
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
-                                <activityIndicatorView key="backgroundView" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" id="vI8-YE-Cgm">
-                                    <rect key="frame" x="0.0" y="-64" width="600" height="348"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                </activityIndicatorView>
                                 <cells>
                                     <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="collectionViewCell" id="DIR-GL-mJN" customClass="CustomCollectionViewCell" customModule="VirtualTourist" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="64" width="100" height="100"/>
@@ -113,6 +109,10 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="Pd7-TO-fmk">
                                 <rect key="frame" x="0.0" y="64" width="600" height="150"/>
                             </mapView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="vI8-YE-Cgm">
+                                <rect key="frame" x="282" y="281" width="37" height="37"/>
+                                <color key="color" red="0.99215686270000003" green="0.43137254899999999" blue="0.043137254899999998" alpha="1" colorSpace="calibratedRGB"/>
+                            </activityIndicatorView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fhn-WW-7lh">
                                 <rect key="frame" x="0.0" y="570" width="600" height="30"/>
                                 <state key="normal" title="Reload all images from flickr"/>
@@ -138,10 +138,12 @@
                             <constraint firstItem="van-bu-jVV" firstAttribute="leading" secondItem="we8-P9-b7f" secondAttribute="leadingMargin" constant="-20" id="dsn-7L-9zv"/>
                             <constraint firstItem="oDY-5N-d7v" firstAttribute="centerY" secondItem="we8-P9-b7f" secondAttribute="centerY" id="fsa-By-Xa4"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="k8D-vX-zUk"/>
+                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerY" secondItem="we8-P9-b7f" secondAttribute="centerY" id="nWk-13-9au"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="nyc-xR-dI4"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="width" secondItem="we8-P9-b7f" secondAttribute="width" id="pOU-af-g1t"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="top" secondItem="pcb-PT-kP1" secondAttribute="bottom" id="rJB-qJ-7Mm"/>
                             <constraint firstItem="GJH-hO-fcb" firstAttribute="top" secondItem="Fhn-WW-7lh" secondAttribute="bottom" id="rZJ-fi-LfD"/>
+                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="tWX-8G-EM7"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="WrN-Fl-IK7"/>
@@ -157,6 +159,38 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Y3m-lx-9ng" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1394" y="804"/>
+        </scene>
+        <!--Photo Detail View Controller-->
+        <scene sceneID="j4K-fv-1l0">
+            <objects>
+                <viewController storyboardIdentifier="PhotoDetailViewController" id="UJG-TS-n6J" customClass="PhotoDetailViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="wDw-gw-91o"/>
+                        <viewControllerLayoutGuide type="bottom" id="kAD-Ro-opl"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="tQS-rQ-l0h">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView multipleTouchEnabled="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="0mt-Wg-pfn">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="0mt-Wg-pfn" firstAttribute="centerX" secondItem="tQS-rQ-l0h" secondAttribute="centerX" id="OTf-b9-Aml"/>
+                            <constraint firstItem="0mt-Wg-pfn" firstAttribute="centerY" secondItem="tQS-rQ-l0h" secondAttribute="centerY" id="QoJ-Ti-0DZ"/>
+                            <constraint firstItem="0mt-Wg-pfn" firstAttribute="width" secondItem="tQS-rQ-l0h" secondAttribute="width" id="RgI-B4-fCq"/>
+                            <constraint firstItem="0mt-Wg-pfn" firstAttribute="height" secondItem="tQS-rQ-l0h" secondAttribute="height" id="z4x-uT-2vd"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="imageView" destination="0mt-Wg-pfn" id="v0F-39-pLV"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2bs-lH-LDc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1394" y="1551"/>
         </scene>
     </scenes>
 </document>

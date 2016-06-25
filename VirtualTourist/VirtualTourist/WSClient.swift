@@ -26,6 +26,7 @@ class WSClient {
                 guard let resultList = results![FlickrResponseKeys.Photos] as? [String:AnyObject] else {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Photos)' not found in get-results."]
                     print(userInfo)
+                    
                     completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
                     return
                 }
@@ -33,6 +34,7 @@ class WSClient {
                 guard let photos = resultList[FlickrResponseKeys.Photo] as? [[String: AnyObject]] else {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Photo)' not found in get-results."]
                     print(userInfo)
+                    
                     completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
                     return
                 }
@@ -48,6 +50,7 @@ class WSClient {
                 completionHandlerForGet(success: true, results: urls, error: nil)
             }
             else {
+                print(error)
                 completionHandlerForGet(success: false, results: nil, error: error)
             }
         }
@@ -71,24 +74,25 @@ class WSClient {
             WSClient.FlickrParameterKeys.NoJSONCallback: WSClient.FlickrParameterValues.DisableJSONCallback
         ]
 
-        
         // make the request
         taskForGETMethod("", parameters: parameters) { (results, error) in
             
             // check for errors and call the completion handler
             if let error = error {
                 print(error)
+                
                 completionHandlerForGetResults(success: false, results: nil, error: error)
                 
             }
             else {
                 if let results = results as? [String:AnyObject] {
+                    
                     completionHandlerForGetResults(success: true, results: results, error: nil)
                 }
                 else {
                     let userInfo = [NSLocalizedDescriptionKey : WSClient.ErrorMessage.HttpDataTaskFailed]
-                    completionHandlerForGetResults(success: false, results: nil, error: NSError(domain: "getDataAccessGetResults", code: 2, userInfo: userInfo))
                     
+                    completionHandlerForGetResults(success: false, results: nil, error: NSError(domain: "getDataAccessGetResults", code: 2, userInfo: userInfo))
                 }
             }
         }
@@ -108,6 +112,7 @@ class WSClient {
             func sendError(error: NSError?, localError: String) {
                 print(error, localError)
                 let userInfo = [NSLocalizedDescriptionKey : localError]
+                
                 completionHandlerForGET(result: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
             }
             
@@ -172,6 +177,7 @@ class WSClient {
             parsedResult = try NSJSONSerialization.JSONObjectWithData(newData, options: .AllowFragments)
         } catch {
             let userInfo = [NSLocalizedDescriptionKey : WSClient.ErrorMessage.JsonParseError.stringByAppendingString("\(data)")]
+            
             completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         

@@ -31,22 +31,23 @@ class Utils {
         return dispatch_get_global_queue(Int(QOS_CLASS_BACKGROUND.rawValue), 0)
     }
     
-    //# MARK: KVO for DataStore
-    static let OberserverKeyIsLoading = "isLoading"
     
     //# MARK: Alert
     static func showAlert(viewController: UIViewController, alertMessage: String, completion: (() -> Void)?) {
         
-        let alertController = UIAlertController(title: "Info", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
-        let action = UIAlertAction(title: "OK", style: .Default) { (action:UIAlertAction!) in
-            if let c = completion {
-                c()
+        dispatch_async(Utils.GlobalMainQueue) {
+            let alertController = UIAlertController(title: "Info", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
+            let action = UIAlertAction(title: "OK", style: .Default) { (action:UIAlertAction!) in
+                if let c = completion {
+                    c()
+                }
             }
+            alertController.addAction(action)
+            
+            viewController.presentViewController(alertController, animated: true, completion: nil)
         }
-        alertController.addAction(action)
-        
-        viewController.presentViewController(alertController, animated: true, completion: nil)
     }
+    
     
     //# MARK: Activity Indicator
     static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {

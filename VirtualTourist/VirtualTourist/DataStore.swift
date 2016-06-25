@@ -9,21 +9,11 @@
 import Foundation
 import CoreData
 
-class DataStore: NSObject {
+class DataStore {
     
     //# MARK: Attributes
     let stack = CoreDataStack(modelName: "VirtualTourist")!
-    
-    dynamic var isLoading = false
-    
-    var isNotLoading: Bool {
-        
-        return !isLoading
-    }
-    
     var pins = [Pin]()
-    
-    private let concurrentDataQueue = dispatch_queue_create("com.savvista.udacity.VirtualTourist.dataQueue", DISPATCH_QUEUE_CONCURRENT)
     
     
     //# MARK: Data Model
@@ -39,30 +29,39 @@ class DataStore: NSObject {
         return imageData
     }
     
-    func deleteImageData(imageData: ImageData) {
+    func deleteImageData(imageData: ImageData, deleteCompletionHandler: (success: Bool, error: NSError?) -> Void) {
         
         stack.context.deleteObject(imageData)
 
-        do {
-            try self.stack.context.save()
-        }
-        catch {
-            print("error :-o") //TODO: Add completion handler
+        saveContext() { (success, error) in
+            
+            if success {
+                deleteCompletionHandler(success: true, error: nil)
+            }
+            else {
+                deleteCompletionHandler(success: false, error: error)
+            }
         }
     }
     
-    func saveContext() {
+    func saveContext(saveCompletionHandler: (success: Bool, error: NSError?) -> Void) {
+        
         if stack.context.hasChanges {
             do {
                 try self.stack.context.save()
+                
+                saveCompletionHandler(success: true, error: nil)
             }
             catch {
-                print("error :-o") //TODO: Add completion handler
+                let userInfo = [NSLocalizedDescriptionKey : "Error occured in saveContext"]
+                print(userInfo)
+                
+                saveCompletionHandler(success: false, error: NSError(domain: "saveContext", code: 1, userInfo: userInfo))
             }
         }
     }
     
-    func loadPins() {
+    func loadPins(loadPinsCompletionHandler: (success: Bool, error: NSError?) -> Void) {
 
         let fetchRequest = NSFetchRequest()
         let entityDescription = NSEntityDescription.entityForName("Pin", inManagedObjectContext: self.stack.context)
@@ -72,14 +71,18 @@ class DataStore: NSObject {
             let result = try self.stack.context.executeFetchRequest(fetchRequest)
             self.pins = result as! [Pin]
             
+            loadPinsCompletionHandler(success: true, error: nil)
+            
         } catch {
             let fetchError = error as NSError
             print(fetchError)
+            
+            loadPinsCompletionHandler(success: false, error: fetchError)
         }
     }
     
     
-    //# MARK: Get Images
+    //# MARK: Load/Access Images
     func getImages(pin: Pin, getCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
@@ -93,11 +96,8 @@ class DataStore: NSObject {
         
             print("Loading image data from flickr.")
             
-            self.notifyLoadingData(true)
-            
             WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
                 
-                self.notifyLoadingData(false)
                 var imageDatas = [ImageData]()
                 
                 if success {
@@ -110,18 +110,19 @@ class DataStore: NSObject {
                     
                     pin.imageDatas = NSSet(array: imageDatas)
 
-                    do {
-                        try self.stack.context.save()
-                    }
-                    catch {
-                        // TODO: do something with the error
+                    self.saveContext() { (success, error) in
+                        
+                        if !success {
+                            print(error)
+                            getCompletionHandler(success: false, results: pin, error: error)
+                        }
                     }
                     
                     // return with success
                     getCompletionHandler(success: true, results: pin, error: nil)
                 }
                 else {
-                    self.notifyLoadingData(false)
+                    print(error)
                     getCompletionHandler(success: false, results: pin, error: error)
                 }
             }
@@ -135,11 +136,8 @@ class DataStore: NSObject {
         
         print("Reloading image data from flickr.")
         
-        self.notifyLoadingData(true)
-        
         WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
             
-            self.notifyLoadingData(false)
             var imageDatas = [ImageData]()
             
             if success {
@@ -157,11 +155,6 @@ class DataStore: NSObject {
                     if filteredImages?.count > 0 {
                         let filteredImageData = filteredImages?.first as? ImageData
                         imageData.image = filteredImageData?.image
-                        
-                        print("found url in local image data: \(result)")
-                    }
-                    else {
-                        print("url not found in local image data: \(result)")
                     }
                     
                     imageDatas.append(imageData)
@@ -169,29 +162,24 @@ class DataStore: NSObject {
                 
                 pin.imageDatas = NSSet(array: imageDatas)
                 
-                do {
-                    try self.stack.context.save()
-                }
-                catch {
-                    // TODO: do something with the error
+                self.saveContext() { (success, error) in
+                    
+                    if !success {
+                        print(error)
+                        reloadCompletionHandler(success: false, results: pin, error: error)
+                    }
                 }
                 
                 // return with success
                 reloadCompletionHandler(success: true, results: pin, error: nil)
             }
             else {
-                self.notifyLoadingData(false)
+                print(error)
                 reloadCompletionHandler(success: false, results: pin, error: error)
             }
         }
     }
-    
-    //# MARK: Notifications
-    private func notifyLoadingData(isLoading: Bool) {
-        dispatch_async(Utils.GlobalMainQueue) {
-            self.isLoading = isLoading
-        }
-    }
+
     
     //# MARK: Shared Instance
     class func sharedInstance() -> DataStore {

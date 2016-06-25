@@ -10,6 +10,7 @@ import Foundation
 
 class Constants {
     
+    //# MARK: NSUserDefaults Keys
     static let HasLaunchedBefore = "hasLaunchedBefore"
     
     static let MapLatitude = "mapLatitude"

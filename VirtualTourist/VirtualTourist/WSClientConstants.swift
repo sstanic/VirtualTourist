@@ -19,20 +19,9 @@ extension WSClient {
         static let ApiPath = "/services/rest/"
     }
 
-    // MARK: Flickr
-    struct Flickr {
-//        static let APIScheme = "https"
-//        static let APIHost = "api.flickr.com"
-//        static let APIPath = "/services/rest/"
-        
-//        static let SearchBBoxHalfWidth = 1.0
-//        static let SearchBBoxHalfHeight = 1.0
-//        static let SearchLatRange = (-90.0, 90.0)
-//        static let SearchLonRange = (-180.0, 180.0)
-    }
-    
     // MARK: Flickr Parameter Keys
     struct FlickrParameterKeys {
+        
         static let Method = "method"
         static let APIKey = "api_key"
         static let GalleryID = "gallery_id"
@@ -50,6 +39,7 @@ extension WSClient {
     
     // MARK: Flickr Parameter Values
     struct FlickrParameterValues {
+        
         static let SearchMethod = "flickr.photos.search"
         static let APIKey = "4120b4b57e0c20e206965d809d8d59e4"
         static let ResponseFormat = "json"
@@ -58,11 +48,12 @@ extension WSClient {
         static let GalleryID = "5704-72157622566655097"
         static let MediumURL = "url_m"
         static let UseSafeSearch = "1"
-        static let PerPage = 10
+        static let PerPage = 100
     }
     
     // MARK: Flickr Response Keys
     struct FlickrResponseKeys {
+        
         static let Status = "stat"
         static let Photos = "photos"
         static let Photo = "photo"
@@ -75,16 +66,19 @@ extension WSClient {
     
     // MARK: Flickr Response Values
     struct FlickrResponseValues {
+        
         static let OKStatus = "ok"
     }
-
     
     //# MARK: Data Access
     struct DataConstants {
+        
         static let Timeout = 10
     }
     
+    //#MARK: Error Messages
     struct ErrorMessage {
+        
         static let NetworkTimeout = "Network timeout. Please check your network connection."
         static let GeneralHttpRequestError = "Http request error. Error message: "
         static let StatusCodeFailure = "Your request returned a status code other than 2xx."

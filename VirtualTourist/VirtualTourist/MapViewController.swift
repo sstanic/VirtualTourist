@@ -11,10 +11,15 @@ import MapKit
 
 class MapViewController: UIViewController, MKMapViewDelegate {
     
+    //# MARK: Outlets
     @IBOutlet weak var mapView: MKMapView!
 
-    var mapItem: MapItem?
     
+    //# MARK: Attributes
+    var newMapItem: MapItem?
+    
+    
+    //# MARK: Overrides
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -23,13 +28,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     override func viewWillAppear(animated: Bool) {
+        
         self.navigationController?.navigationBarHidden = true
     }
     
     override func viewWillDisappear(animated: Bool) {
+        
         self.navigationController?.navigationBarHidden = false
     }
 
+    
+    //# MARK: Initialize
     private func initializeMap() {
         
         mapView.delegate = self
@@ -54,16 +63,24 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     private func initializePins() {
         
-        DataStore.sharedInstance().loadPins()
+        DataStore.sharedInstance().loadPins() { (success, error) in
+            
+            if !success {
+                print(error)
+                Utils.showAlert(self, alertMessage: "An error occured while loading map data from the data base.", completion: nil)
+            }
+        }
         
         for pin in DataStore.sharedInstance().pins {
             let location = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
-            let mapItem = MapItem(title: pin.title!, subtitle: "", location: location)
+            let mapItem = MapItem(title: pin.title!, location: location)
             mapItem.pin = pin
             mapView.addAnnotation(mapItem)
         }
     }
     
+    
+    //# MARK: Pin, Image, Geocode
     @objc func createNewPin(gestureRecognizer: UILongPressGestureRecognizer) {
         
         var touchPoint: CGPoint = gestureRecognizer.locationInView(mapView)
@@ -72,25 +89,31 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         switch gestureRecognizer.state {
             
         case .Began:
-            mapItem = MapItem(title: "<...>", subtitle: "", location: touchMapCoordinate)
-            mapView.addAnnotation(mapItem!)
+            newMapItem = MapItem(title: "<...>", location: touchMapCoordinate)
+            mapView.addAnnotation(newMapItem!)
             
         case .Ended:
-            geocodeMapItem(mapItem!) { (success, error) in
+            geocodeMapItem(newMapItem!) { (success, error) in
                 
-                let pin = DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.mapItem!.title!)
-                self.mapItem!.pin = pin
-                self.showImages(pin)
-                DataStore.sharedInstance().pins.append(pin)
+                if success {
+                    let pin = DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.newMapItem!.title!)
+                    self.newMapItem!.pin = pin
+                    self.showImages(pin)
+                    DataStore.sharedInstance().pins.append(pin)
+                }
+                else {
+                    print(error)
+                    Utils.showAlert(self, alertMessage: "An error occured while creating a new pin.", completion: nil)
+                }
             }
             
         case .Changed:
             touchPoint = gestureRecognizer.locationInView(mapView)
             touchMapCoordinate = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
             
-            mapView.removeAnnotation(mapItem!)
-            mapItem = MapItem(title: ".", subtitle: "", location: touchMapCoordinate)
-            mapView.addAnnotation(mapItem!)
+            mapView.removeAnnotation(newMapItem!)
+            newMapItem = MapItem(title: ".", location: touchMapCoordinate)
+            mapView.addAnnotation(newMapItem!)
             
         default:
             break
@@ -98,6 +121,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     private func showImages(pin: Pin) {
+        
         let photoAlbumViewController = self.storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
         photoAlbumViewController.pin = pin
         
@@ -105,9 +129,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     private func geocodeMapItem(mapItem: MapItem, geocodeCompletionHandler: (success: Bool, error: NSError?) -> Void) {
-        var address = ""
         
+        var address = ""
         let location = CLLocation(latitude: mapItem.coordinate.latitude, longitude: mapItem.coordinate.longitude)
+        
         CLGeocoder().reverseGeocodeLocation(location) { (placemark, error) in
             
             if error != nil {
@@ -188,15 +213,26 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             if let mapItem = view.annotation as? MapItem {
                 
                 dispatch_async(Utils.GlobalBackgroundQueue) {
+                    
                     self.geocodeMapItem(mapItem) { (success, error) in
                         
-                        let pin = mapItem.pin
-                        pin?.latitude = mapItem.coordinate.latitude
-                        pin?.longitude = mapItem.coordinate.longitude
-                        
-                        pin?.title = mapItem.title
-                        DataStore.sharedInstance().reloadImages(pin!) { (success, results, error) in
-                            DataStore.sharedInstance().saveContext()
+                        if success {
+                            let pin = mapItem.pin
+                            pin?.latitude = mapItem.coordinate.latitude
+                            pin?.longitude = mapItem.coordinate.longitude
+                            
+                            pin?.title = mapItem.title
+                            DataStore.sharedInstance().reloadImages(pin!) { (success, results, error) in
+                                
+                                if !success {
+                                    print(error)
+                                    Utils.showAlert(self, alertMessage: "An error occured while trying to load new images.", completion: nil)
+                                }
+                            }
+                        }
+                        else {
+                            print(error)
+                            Utils.showAlert(self, alertMessage: "An error occured while dragging the map pin.", completion: nil)
                         }
                     }
                 }

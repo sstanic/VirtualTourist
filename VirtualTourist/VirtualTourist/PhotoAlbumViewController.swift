@@ -9,17 +9,18 @@
 import UIKit
 import MapKit
 
-class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIViewControllerPreviewingDelegate {
     
+    //# MARK: Outlets
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var photoAlbumCollectionView: UICollectionView!
     @IBOutlet weak var collectionViewFlowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var reloadButton: UIButton!
-    
-    
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var noImagesTextField: UITextField!
 
+    
+    //# MARK: Attributes
     let regionRadius: CLLocationDistance = 1000
     var isMapInitialized = false
     
@@ -27,21 +28,72 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     var imageDatas = [ImageData]()
     var images = [String:UIImage]()
     
+    
+    //# MARK: Overrides
     override func viewDidLoad() {
+        
         super.viewDidLoad()
         
         noImagesTextField.hidden = true
         initializeCollectionView()
+        
+        if( traitCollection.forceTouchCapability == .Available){
+            
+            registerForPreviewingWithDelegate(self, sourceView: view)
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
+        
         showPinOnMap(pin)
         setCurrentLocation(pin)
-        
         loadImages(pin)
     }
     
+    
+    //# MARK: Actions
+    @IBAction func reloadImages(sender: AnyObject) {
+        
+        noImagesTextField.hidden = true
+        
+        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
+        
+        DataStore.sharedInstance().reloadImages(pin) { (success, results, error) in
+            
+            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
+            
+            let resultsCount = results.imageDatas?.count
+            
+            if success {
+                if resultsCount > 0 {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        
+                        self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
+                        self.images = self.createEmptyImageDictionary(self.imageDatas)
+                        
+                        self.photoAlbumCollectionView.reloadData()
+                        
+                        self.createUIImages()
+                    }
+                }
+                else {
+                    
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        self.noImagesTextField.hidden = false
+                    }
+                }
+            }
+            else {
+                print(error)
+                Utils.showAlert(self, alertMessage: "An error occured while reloading images.", completion: nil)
+            }
+        }
+    }
+    
+    //# MARK: Initialize
     private func initializeCollectionView() {
+        
         // remove space on top of collection view
         self.automaticallyAdjustsScrollViewInsets = false;
         
@@ -67,10 +119,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         collectionViewFlowLayout.itemSize = CGSizeMake(dimension, dimension)
     }
     
+    
+    //# MARK: Map
     private func showPinOnMap(pin: Pin) {
         
         let location = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
-        let mapItem = MapItem(title: pin.title!, subtitle: "", location: location)
+        let mapItem = MapItem(title: pin.title!, location: location)
         mapView.addAnnotation(mapItem)
     }
     
@@ -81,7 +135,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         mapView.setRegion(coordinateRegion, animated: true)
     }
     
+    
+    //# MARK: Images
     private func createEmptyImageDictionary(imageDataList: [ImageData]) -> [String:UIImage] {
+        
         var images = [String:UIImage]()
         
         if imageDataList.count > 0 {
@@ -127,7 +184,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 }
             }
             else {
-                // TODO: some problem occured
+                print(error)
+                Utils.showAlert(self, alertMessage: "An error occured while loading images from flickr.", completion: nil)
             }
         }
     }
@@ -135,7 +193,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     private func createUIImages() {
         
         reloadButton.enabled = false
-        photoAlbumCollectionView.alpha = 0.5
+        
+        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
         
         dispatch_async(Utils.GlobalBackgroundQueue) {
             
@@ -174,14 +233,22 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
             dispatch_async(Utils.GlobalMainQueue) {
                 self.reloadButton.enabled = true
-                self.photoAlbumCollectionView.alpha = 1.0
+                
+                Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             }
             
-            DataStore.sharedInstance().saveContext()
+            DataStore.sharedInstance().saveContext() { (success, error) in
+                
+                if !success {
+                    print(error)
+                    Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
+                }
+            }
         }
     }
     
     private func addImageToImageData(image: UIImage, imageData: ImageData) {
+        
         let url = imageData.url!
         
         if url.hasSuffix("jpg") {
@@ -198,54 +265,27 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         print("imagetype unknown for url <\(url)>")
     }
     
-    @IBAction func reloadImages(sender: AnyObject) {
-        
-        noImagesTextField.hidden = true
-        
-        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
-        
-        DataStore.sharedInstance().reloadImages(pin) { (success, results, error) in
-            
-            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
-            
-            let resultsCount = results.imageDatas?.count
-            
-            if success {
-                if resultsCount > 0 {
-                    
-                    dispatch_async(Utils.GlobalMainQueue) {
-                        
-                        self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
-                        self.images = self.createEmptyImageDictionary(self.imageDatas)
-                        
-                        self.photoAlbumCollectionView.reloadData()
-                        
-                        self.createUIImages()
-                    }
-                }
-                else {
-                    
-                    dispatch_async(Utils.GlobalMainQueue) {
-                        self.noImagesTextField.hidden = false
-                    }
-                }
-            }
-            else {
-                // TODO: some problem occured
-            }
-        }
-    }
-    
     private func deleteImage(index: Int) {
         
         let imageData = imageDatas[index]
         images.removeValueForKey(imageData.url!)
         imageDatas.removeAtIndex(index)
         
-        DataStore.sharedInstance().deleteImageData(imageData)
+        if (images.count == 0) {
+            noImagesTextField.hidden = false
+        }
+        
+        DataStore.sharedInstance().deleteImageData(imageData) { (success, error) in
+            
+            if !success {
+                print(error)
+                Utils.showAlert(self, alertMessage: "An error occured while deleting the image.", completion: nil)
+            }
+        }
     }
     
-    //#MARK: - UICollectionViewDelegate
+    
+    //# MARK: - UICollectionViewDelegate
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
 
         deleteImage(indexPath.row)
@@ -253,8 +293,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     }
     
     
-    //#MARK: - UICollectionViewDataSource
+    //# MARK: - UICollectionViewDataSource
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        
         return imageDatas.count
     }
     
@@ -266,5 +307,33 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         cell.imageView.image = images[imageData.url!]
         
         return cell
+    }
+    
+    
+    //# MARK: UIViewControllerPreviewingDelegate
+    func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        let offset = photoAlbumCollectionView.frame.origin.y
+        let contentOffset = photoAlbumCollectionView.contentOffset.y
+        
+        let tapLocation = CGPoint(x: location.x, y: location.y - offset + contentOffset)
+        
+        guard let indexPath = photoAlbumCollectionView?.indexPathForItemAtPoint(tapLocation) else { return nil }
+        guard let cell = photoAlbumCollectionView?.cellForItemAtIndexPath(indexPath) else { return nil }
+        guard let photoDetailViewController = storyboard?.instantiateViewControllerWithIdentifier("PhotoDetailViewController") as? PhotoDetailViewController else { return nil }
+        
+        let imageData = imageDatas[indexPath.row]
+        let image = images[imageData.url!]
+        photoDetailViewController.image = image
+        
+        photoDetailViewController.preferredContentSize = CGSize(width: 0.0, height: 500)
+        previewingContext.sourceRect = cell.frame
+        
+        return photoDetailViewController
+    }
+    
+    func previewingContext(previewingContext: UIViewControllerPreviewing, commitViewController viewControllerToCommit: UIViewController) {
+        
+        showViewController(viewControllerToCommit, sender: self)
     }
 }

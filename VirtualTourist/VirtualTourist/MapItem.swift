@@ -11,23 +11,24 @@ import MapKit
 
 class MapItem: NSObject, MKAnnotation {
 
-    let subtitle: String?
+    //# MARK: Attributes
     var coordinate: CLLocationCoordinate2D
     
     var pin: Pin?
-    
-    init(title: String, subtitle: String, location: CLLocationCoordinate2D) {
-        
-        self.title = title
-        self.subtitle = subtitle
-        self.coordinate = location
-        
-        super.init()
-    }
     
     var title: String? {
         
         willSet { willChangeValueForKey("title") }
         didSet { didChangeValueForKey("title") }
+    }
+    
+    
+    //# MARK: Init
+    init(title: String, location: CLLocationCoordinate2D) {
+        
+        self.title = title
+        self.coordinate = location
+        
+        super.init()
     }
 }

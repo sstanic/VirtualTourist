@@ -9,5 +9,7 @@
 import UIKit
 
 class CustomCollectionViewCell: UICollectionViewCell {
+    
+    //# MARK: Outlets
     @IBOutlet weak var imageView: UIImageView!
 }
