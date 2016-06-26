@@ -22,7 +22,6 @@ class WSClient {
         getDataAccessGetResults(latitude: latitude, longitude: longitude, perPage: WSClient.FlickrParameterValues.PerPage) { (success, results, error) in
             
             if success {
-                
                 guard let resultList = results![FlickrResponseKeys.Photos] as? [String:AnyObject] else {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Photos)' not found in get-results."]
                     print(userInfo)
@@ -79,8 +78,8 @@ class WSClient {
             
             // check for errors and call the completion handler
             if let error = error {
-                print(error)
                 
+                print(error)
                 completionHandlerForGetResults(success: false, results: nil, error: error)
                 
             }
@@ -110,6 +109,7 @@ class WSClient {
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
             
             func sendError(error: NSError?, localError: String) {
+                
                 print(error, localError)
                 let userInfo = [NSLocalizedDescriptionKey : localError]
                 
@@ -118,6 +118,7 @@ class WSClient {
             
             // check for errors
             if let error = error {
+                
                 if error.code == NSURLErrorTimedOut {
                     sendError(error, localError: WSClient.ErrorMessage.NetworkTimeout)
                     return

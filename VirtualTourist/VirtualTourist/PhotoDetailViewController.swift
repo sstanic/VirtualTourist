@@ -24,7 +24,6 @@ class PhotoDetailViewController: UIViewController {
         super.viewDidLoad()
         
         if let image = image {
-            
             imageView.image = image
         }
         
@@ -61,6 +60,7 @@ class PhotoDetailViewController: UIViewController {
     }
     
     @objc func tapImage(gestureRecognizer: UITapGestureRecognizer) {
+        
         imageView.frame = self.view.frame
     }
 }

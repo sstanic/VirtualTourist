@@ -23,6 +23,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     //# MARK: Attributes
     let regionRadius: CLLocationDistance = 1000
     var isMapInitialized = false
+    var isCreatingImages = false
     
     var pin: Pin!
     var imageDatas = [ImageData]()
@@ -35,12 +36,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         super.viewDidLoad()
         
         noImagesTextField.hidden = true
-        initializeCollectionView()
         
-        if( traitCollection.forceTouchCapability == .Available){
-            
-            registerForPreviewingWithDelegate(self, sourceView: view)
-        }
+        initializeCollectionView()
+        initializeForceTouch()
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -73,13 +71,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                         self.images = self.createEmptyImageDictionary(self.imageDatas)
                         
                         self.photoAlbumCollectionView.reloadData()
-                        
                         self.createUIImages()
                     }
                 }
                 else {
                     
                     dispatch_async(Utils.GlobalMainQueue) {
+                        
                         self.noImagesTextField.hidden = false
                     }
                 }
@@ -119,6 +117,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         collectionViewFlowLayout.itemSize = CGSizeMake(dimension, dimension)
     }
     
+    private func initializeForceTouch() {
+        
+        if traitCollection.forceTouchCapability == .Available {
+            
+            registerForPreviewingWithDelegate(self, sourceView: view)
+        }
+    }
+    
     
     //# MARK: Map
     private func showPinOnMap(pin: Pin) {
@@ -142,6 +148,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         var images = [String:UIImage]()
         
         if imageDataList.count > 0 {
+            
             for imageData in imageDataList {
                 let image = UIImage(named: "placeholder")
                 images[imageData.url!] = image
@@ -164,21 +171,17 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             let resultsCount = results.imageDatas?.count
             
             if success {
-                if resultsCount > 0 {
+                dispatch_async(Utils.GlobalMainQueue) {
                     
-                    dispatch_async(Utils.GlobalMainQueue) {
+                    if resultsCount > 0 {
                         
                         self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
                         self.images = self.createEmptyImageDictionary(self.imageDatas)
-                        
                         self.photoAlbumCollectionView.reloadData()
                         
                         self.createUIImages()
                     }
-                }
-                else {
-                    
-                    dispatch_async(Utils.GlobalMainQueue) {
+                    else {
                         self.noImagesTextField.hidden = false
                     }
                 }
@@ -193,7 +196,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     private func createUIImages() {
         
         reloadButton.enabled = false
-        
+        isCreatingImages = true
+
         Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
         
         dispatch_async(Utils.GlobalBackgroundQueue) {
@@ -207,14 +211,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 dispatch_group_enter(downloadGroup)
                 
                 if imageData.image == nil {
+                    
                     if let url = NSURL(string: photo_url) {
-                        
                         if let data = NSData(contentsOfURL: url) {
-                            let img = UIImage(data: data)
                             
-                            if let image = img {
-                                self.images[photo_url] = image
-                                self.addImageToImageData(image, imageData: imageData)
+                            imageData.image = data
+                            if let img = UIImage(data: data) {
+                                self.images[photo_url] = img
                             }
                         }
                     }
@@ -226,13 +229,16 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 dispatch_group_leave(downloadGroup)
                 
                 dispatch_async(Utils.GlobalMainQueue) {
+                    
                     self.photoAlbumCollectionView.reloadData()
                 }
             }
             
             dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
             dispatch_async(Utils.GlobalMainQueue) {
+                
                 self.reloadButton.enabled = true
+                self.isCreatingImages = false
                 
                 Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             }
@@ -245,24 +251,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 }
             }
         }
-    }
-    
-    private func addImageToImageData(image: UIImage, imageData: ImageData) {
-        
-        let url = imageData.url!
-        
-        if url.hasSuffix("jpg") {
-            imageData.image = UIImageJPEGRepresentation(image, 1.0)
-            return
-        }
-        
-        if url.hasSuffix("png") {
-            imageData.image = UIImagePNGRepresentation(image)
-            return
-        }
-        
-        imageData.image = nil
-        print("imagetype unknown for url <\(url)>")
     }
     
     private func deleteImage(index: Int) {
@@ -288,6 +276,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     //# MARK: - UICollectionViewDelegate
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
 
+        if isCreatingImages {
+            Utils.showAlert(self, alertMessage: "Cannot delete images while loading. Please wait until all images are loaded.", completion: nil)
+            return
+        }
+        
         deleteImage(indexPath.row)
         collectionView.deleteItemsAtIndexPaths([indexPath])
     }

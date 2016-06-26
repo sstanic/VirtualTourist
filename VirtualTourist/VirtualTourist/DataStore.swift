@@ -94,7 +94,7 @@ class DataStore {
         }
         else {
         
-            print("Loading image data from flickr.")
+            print("Loading image data from web service.")
             
             WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
                 
@@ -134,7 +134,7 @@ class DataStore {
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
         
-        print("Reloading image data from flickr.")
+        print("Reloading image data from web service.")
         
         WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
             

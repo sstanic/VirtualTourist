@@ -36,6 +36,7 @@ class Utils {
     static func showAlert(viewController: UIViewController, alertMessage: String, completion: (() -> Void)?) {
         
         dispatch_async(Utils.GlobalMainQueue) {
+            
             let alertController = UIAlertController(title: "Info", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
             let action = UIAlertAction(title: "OK", style: .Default) { (action:UIAlertAction!) in
                 if let c = completion {
@@ -53,12 +54,12 @@ class Utils {
     static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
         
         dispatch_async(Utils.GlobalMainQueue) {
+            
             activityIndicator.startAnimating()
             activityIndicator.hidden = false
-            view.userInteractionEnabled = false
             
             for subview in view.subviews {
-                subview.alpha = 0.3
+                subview.alpha = 0.2
             }
             
             // do not 'hide' the activity indicator
@@ -69,9 +70,9 @@ class Utils {
     static func hideActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
         
         dispatch_async(Utils.GlobalMainQueue) {
+            
             activityIndicator.stopAnimating()
             activityIndicator.hidden = true
-            view.userInteractionEnabled = true
             
             for subview in view.subviews {
                 subview.alpha = 1.0

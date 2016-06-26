@@ -72,6 +72,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
         
         for pin in DataStore.sharedInstance().pins {
+            
             let location = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
             let mapItem = MapItem(title: pin.title!, location: location)
             mapItem.pin = pin
@@ -174,7 +175,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             view = dequeuedView
         }
         else {
-            
             view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             view.canShowCallout = true
             view.calloutOffset = CGPoint(x: -5, y: 5)
@@ -189,7 +189,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
         if control == view.rightCalloutAccessoryView {
+            
             if let mapItem = view.annotation as? MapItem {
+                
                 if let pin = mapItem.pin {
                     showImages(pin)
                 }
