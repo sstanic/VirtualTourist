@@ -88,6 +88,10 @@
                                             <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="vI8-YE-Cgm">
+                                                    <rect key="frame" x="40" y="40" width="20" height="20"/>
+                                                    <color key="color" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                </activityIndicatorView>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="6TM-xe-ZDu" userLabel="Tourist Image">
                                                     <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                                 </imageView>
@@ -95,12 +99,15 @@
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
                                         <constraints>
+                                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerY" secondItem="DIR-GL-mJN" secondAttribute="centerY" id="15s-m4-aWt"/>
+                                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerX" secondItem="DIR-GL-mJN" secondAttribute="centerX" id="DW8-XM-tTg"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="height" secondItem="DIR-GL-mJN" secondAttribute="height" id="Eh3-by-UrK"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="centerX" secondItem="DIR-GL-mJN" secondAttribute="centerX" id="YxE-dq-sMu"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="width" secondItem="DIR-GL-mJN" secondAttribute="width" id="dUg-56-5ap"/>
                                             <constraint firstItem="6TM-xe-ZDu" firstAttribute="centerY" secondItem="DIR-GL-mJN" secondAttribute="centerY" id="guC-eb-Aid"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="activityIndicator" destination="vI8-YE-Cgm" id="KmW-MU-2HM"/>
                                             <outlet property="imageView" destination="6TM-xe-ZDu" id="hJc-hh-irR"/>
                                         </connections>
                                     </collectionViewCell>
@@ -109,10 +116,6 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="Pd7-TO-fmk">
                                 <rect key="frame" x="0.0" y="64" width="600" height="150"/>
                             </mapView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="vI8-YE-Cgm">
-                                <rect key="frame" x="282" y="281" width="37" height="37"/>
-                                <color key="color" red="0.99215686270000003" green="0.43137254899999999" blue="0.043137254899999998" alpha="1" colorSpace="calibratedRGB"/>
-                            </activityIndicatorView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fhn-WW-7lh">
                                 <rect key="frame" x="0.0" y="570" width="600" height="30"/>
                                 <state key="normal" title="Reload all images from flickr"/>
@@ -138,17 +141,14 @@
                             <constraint firstItem="van-bu-jVV" firstAttribute="leading" secondItem="we8-P9-b7f" secondAttribute="leadingMargin" constant="-20" id="dsn-7L-9zv"/>
                             <constraint firstItem="oDY-5N-d7v" firstAttribute="centerY" secondItem="we8-P9-b7f" secondAttribute="centerY" id="fsa-By-Xa4"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="k8D-vX-zUk"/>
-                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerY" secondItem="we8-P9-b7f" secondAttribute="centerY" id="nWk-13-9au"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="nyc-xR-dI4"/>
                             <constraint firstItem="Fhn-WW-7lh" firstAttribute="width" secondItem="we8-P9-b7f" secondAttribute="width" id="pOU-af-g1t"/>
                             <constraint firstItem="Pd7-TO-fmk" firstAttribute="top" secondItem="pcb-PT-kP1" secondAttribute="bottom" id="rJB-qJ-7Mm"/>
                             <constraint firstItem="GJH-hO-fcb" firstAttribute="top" secondItem="Fhn-WW-7lh" secondAttribute="bottom" id="rZJ-fi-LfD"/>
-                            <constraint firstItem="vI8-YE-Cgm" firstAttribute="centerX" secondItem="we8-P9-b7f" secondAttribute="centerX" id="tWX-8G-EM7"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="WrN-Fl-IK7"/>
                     <connections>
-                        <outlet property="activityIndicator" destination="vI8-YE-Cgm" id="5MJ-Nd-Y9b"/>
                         <outlet property="collectionViewFlowLayout" destination="vWK-FU-ZvB" id="WIz-b1-Fbu"/>
                         <outlet property="mapView" destination="Pd7-TO-fmk" id="bdU-1H-gXN"/>
                         <outlet property="noImagesTextField" destination="oDY-5N-d7v" id="fGK-aC-Mrv"/>

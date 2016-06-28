@@ -12,4 +12,5 @@ class CustomCollectionViewCell: UICollectionViewCell {
     
     //# MARK: Outlets
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 }

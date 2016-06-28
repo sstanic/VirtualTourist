@@ -15,15 +15,16 @@ class DataStore {
     let stack = CoreDataStack(modelName: "VirtualTourist")!
     var pins = [Pin]()
     
-    
     //# MARK: Data Model
-    func createPin(latitude: Double, longitude: Double, title: String) -> Pin {
+    func createPin(latitude: Double, longitude: Double, title: String, createPinCompletionHandler: (success: Bool, result: Pin, error: NSError?) -> Void) {
+
+        let pin = Pin(latitude: latitude, longitude: longitude, title: title, context: self.stack.context)
+        self.pins.append(pin)
         
-        let pin = Pin(latitude: latitude, longitude: longitude, title: title, context: stack.context)
-        return pin
+        createPinCompletionHandler(success: true, result: pin, error: nil)
     }
     
-    func createImageData(url: String) -> ImageData {
+    private func createImageData(url: String) -> ImageData {
         
         let imageData = ImageData(url: url, context: stack.context)
         return imageData
@@ -46,17 +47,19 @@ class DataStore {
     
     func saveContext(saveCompletionHandler: (success: Bool, error: NSError?) -> Void) {
         
-        if stack.context.hasChanges {
-            do {
-                try self.stack.context.save()
-                
-                saveCompletionHandler(success: true, error: nil)
-            }
-            catch {
-                let userInfo = [NSLocalizedDescriptionKey : "Error occured in saveContext"]
-                print(userInfo)
-                
-                saveCompletionHandler(success: false, error: NSError(domain: "saveContext", code: 1, userInfo: userInfo))
+        dispatch_async(Utils.GlobalMainQueue) {
+            if self.stack.context.hasChanges {
+                do {
+                    try self.stack.context.save()
+                    
+                    saveCompletionHandler(success: true, error: nil)
+                }
+                catch {
+                    let userInfo = [NSLocalizedDescriptionKey : "Error occured in saveContext"]
+                    print(userInfo)
+                    
+                    saveCompletionHandler(success: false, error: NSError(domain: "saveContext", code: 1, userInfo: userInfo))
+                }
             }
         }
     }
@@ -90,6 +93,7 @@ class DataStore {
         
         if pin.imageDatas?.count > 0 {
             print("Using locally saved image data.")
+            
             getCompletionHandler(success: true, results: pin, error: nil)
         }
         else {
@@ -98,28 +102,31 @@ class DataStore {
             
             WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
                 
-                var imageDatas = [ImageData]()
-                
                 if success {
                     
-                    // create image entities
-                    for result in results! {
-                        let imageData = self.createImageData(result)
-                        imageDatas.append(imageData)
-                    }
-                    
-                    pin.imageDatas = NSSet(array: imageDatas)
-
-                    self.saveContext() { (success, error) in
+                    dispatch_async(Utils.GlobalMainQueue) {
+                        var imageDatas = [ImageData]()
                         
-                        if !success {
-                            print(error)
-                            getCompletionHandler(success: false, results: pin, error: error)
+                        // create image entities
+                        for result in results! {
+                            
+                            let imageData = self.createImageData(result)
+                            imageDatas.append(imageData)
                         }
+                        
+                        pin.imageDatas = NSSet(array: imageDatas)
+                        
+                        self.saveContext() { (success, error) in
+                            
+                            if !success {
+                                print(error)
+                                getCompletionHandler(success: false, results: pin, error: error)
+                            }
+                        }
+                        
+                        // return with success
+                        getCompletionHandler(success: true, results: pin, error: nil)
                     }
-                    
-                    // return with success
-                    getCompletionHandler(success: true, results: pin, error: nil)
                 }
                 else {
                     print(error)
@@ -138,40 +145,42 @@ class DataStore {
         
         WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
             
-            var imageDatas = [ImageData]()
-            
             if success {
                 
-                // create image entities
-                for result in results! {
-                    
-                    let imageData = self.createImageData(result)
-                    
-                    // check existing image data, if url is known
-                    let filter = NSPredicate(format: "url == %@", result)
-                    let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
-                    
-                    // if there is a result, use the local image
-                    if filteredImages?.count > 0 {
-                        let filteredImageData = filteredImages?.first as? ImageData
-                        imageData.image = filteredImageData?.image
+                var imageDatas = [ImageData]()
+                
+                dispatch_async(Utils.GlobalMainQueue) {
+                    // create image entities
+                    for result in results! {
+                        
+                        let imageData = self.createImageData(result)
+                        
+                        // check existing image data, if url is known
+                        let filter = NSPredicate(format: "url == %@", result)
+                        let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
+                        
+                        // if there is a result, use the local image
+                        if filteredImages?.count > 0 {
+                            let filteredImageData = filteredImages?.first as? ImageData
+                            imageData.image = filteredImageData?.image
+                        }
+                        
+                        imageDatas.append(imageData)
                     }
                     
-                    imageDatas.append(imageData)
-                }
-                
-                pin.imageDatas = NSSet(array: imageDatas)
-                
-                self.saveContext() { (success, error) in
+                    pin.imageDatas = NSSet(array: imageDatas)
                     
-                    if !success {
-                        print(error)
-                        reloadCompletionHandler(success: false, results: pin, error: error)
+                    self.saveContext() { (success, error) in
+                        
+                        if !success {
+                            print(error)
+                            reloadCompletionHandler(success: false, results: pin, error: error)
+                        }
                     }
+                    
+                    // return with success
+                    reloadCompletionHandler(success: true, results: pin, error: nil)
                 }
-                
-                // return with success
-                reloadCompletionHandler(success: true, results: pin, error: nil)
             }
             else {
                 print(error)

@@ -51,7 +51,7 @@ class Utils {
     
     
     //# MARK: Activity Indicator
-    static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
+    static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView, alpha: CGFloat) {
         
         dispatch_async(Utils.GlobalMainQueue) {
             
@@ -59,7 +59,7 @@ class Utils {
             activityIndicator.hidden = false
             
             for subview in view.subviews {
-                subview.alpha = 0.2
+                subview.alpha = alpha
             }
             
             // do not 'hide' the activity indicator

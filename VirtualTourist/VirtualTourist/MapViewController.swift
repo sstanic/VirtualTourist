@@ -97,10 +97,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             geocodeMapItem(newMapItem!) { (success, error) in
                 
                 if success {
-                    let pin = DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.newMapItem!.title!)
-                    self.newMapItem!.pin = pin
-                    self.showImages(pin)
-                    DataStore.sharedInstance().pins.append(pin)
+                    DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.newMapItem!.title!) { (succes, result, error) in
+                    
+                        if success {
+                            let pin = result
+                            self.newMapItem!.pin = pin
+                            self.showImages(pin)
+                        }
+                    }
                 }
                 else {
                     print(error)

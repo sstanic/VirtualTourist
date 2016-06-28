@@ -16,7 +16,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     @IBOutlet weak var photoAlbumCollectionView: UICollectionView!
     @IBOutlet weak var collectionViewFlowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var reloadButton: UIButton!
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var noImagesTextField: UITextField!
 
     
@@ -54,11 +53,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         
         noImagesTextField.hidden = true
         
-        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
-        
         DataStore.sharedInstance().reloadImages(pin) { (success, results, error) in
-            
-            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             
             let resultsCount = results.imageDatas?.count
             
@@ -143,15 +138,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     
     //# MARK: Images
-    private func createEmptyImageDictionary(imageDataList: [ImageData]) -> [String:UIImage] {
+    private func createEmptyImageDictionary(imageDatas: [ImageData]) -> [String:UIImage] {
         
         var images = [String:UIImage]()
         
-        if imageDataList.count > 0 {
+        if imageDatas.count > 0 {
             
-            for imageData in imageDataList {
-                let image = UIImage(named: "placeholder")
-                images[imageData.url!] = image
+            for imageData in imageDatas {
+                images[imageData.url!] = nil
             }
         }
         
@@ -162,11 +156,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         
         noImagesTextField.hidden = true
         
-        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
-        
         DataStore.sharedInstance().getImages(pin) { (success, results, error) in
-            
-            Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             
             let resultsCount = results.imageDatas?.count
             
@@ -193,12 +183,78 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
     
+//    private func createUIImages() {
+//        
+//        reloadButton.enabled = false
+//        isCreatingImages = true
+//        
+//        dispatch_async(Utils.GlobalBackgroundQueue) {
+//            
+//            let downloadGroup = dispatch_group_create()
+//            
+//            for imageData in self.imageDatas {
+//                
+//                var photo_url: String = ""
+//                var noImage: Bool = false
+//                var imgData: NSData?
+//                
+//                dispatch_sync(Utils.GlobalMainQueue) {
+//                    photo_url = imageData.url!
+//                    imgData = imageData.image
+//                    noImage = imageData.image == nil
+//                }
+//                
+//                dispatch_group_enter(downloadGroup)
+//                
+//                if noImage {
+//                    
+//                    if let url = NSURL(string: photo_url) {
+//                        if let data = NSData(contentsOfURL: url) {
+//                            imgData = data
+//                        }
+//                    }
+//                }
+//                
+//                if let img = UIImage(data: imgData!) {
+//                    self.images[photo_url] = img
+//                }
+//                
+//                dispatch_async(Utils.GlobalMainQueue) {
+//                    
+//                    imageData.image = imgData
+//                    self.photoAlbumCollectionView.reloadData()
+//                    
+//                    print("reload data....")
+//                    print(self.images)
+//                    print("----")
+//                    print(self.imageDatas)
+//                }
+//                
+//                dispatch_group_leave(downloadGroup)
+//            }
+//            
+//            dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
+//            dispatch_async(Utils.GlobalMainQueue) {
+//                
+//                self.reloadButton.enabled = true
+//                self.isCreatingImages = false
+//            }
+//            
+//        }
+//        
+//        DataStore.sharedInstance().saveContext() { (success, error) in
+//            
+//            if !success {
+//                print(error)
+//                Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
+//            }
+//        }
+//    }
+    
     private func createUIImages() {
         
         reloadButton.enabled = false
         isCreatingImages = true
-
-        Utils.showActivityIndicator(self.view, activityIndicator: activityIndicator)
         
         dispatch_async(Utils.GlobalBackgroundQueue) {
             
@@ -206,32 +262,43 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             
             for imageData in self.imageDatas {
                 
-                let photo_url = imageData.url!
+                var photo_url: String = ""
+                var noImage: Bool = false
+                var imgData: NSData?
+                
+                dispatch_sync(Utils.GlobalMainQueue) {
+                    photo_url = imageData.url!
+                    imgData = imageData.image
+                    noImage = imageData.image == nil
+                }
                 
                 dispatch_group_enter(downloadGroup)
                 
-                if imageData.image == nil {
+                if noImage {
                     
                     if let url = NSURL(string: photo_url) {
                         if let data = NSData(contentsOfURL: url) {
-                            
-                            imageData.image = data
-                            if let img = UIImage(data: data) {
-                                self.images[photo_url] = img
-                            }
+                            imgData = data
                         }
                     }
                 }
-                else {
-                    self.images[photo_url] = UIImage(data: imageData.image!)
-                }
                 
-                dispatch_group_leave(downloadGroup)
+                if let img = UIImage(data: imgData!) {
+                    self.images[photo_url] = img
+                }
                 
                 dispatch_async(Utils.GlobalMainQueue) {
                     
+                    imageData.image = imgData
                     self.photoAlbumCollectionView.reloadData()
+                    
+                    print("reload data....")
+                    print(self.images)
+                    print("----")
+                    print(self.imageDatas)
                 }
+                
+                dispatch_group_leave(downloadGroup)
             }
             
             dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
@@ -239,16 +306,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 
                 self.reloadButton.enabled = true
                 self.isCreatingImages = false
-                
-                Utils.hideActivityIndicator(self.view, activityIndicator: self.activityIndicator)
             }
             
-            DataStore.sharedInstance().saveContext() { (success, error) in
-                
-                if !success {
-                    print(error)
-                    Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
-                }
+        }
+        
+        DataStore.sharedInstance().saveContext() { (success, error) in
+            
+            if !success {
+                print(error)
+                Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
             }
         }
     }
@@ -297,7 +363,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("collectionViewCell", forIndexPath: indexPath) as! CustomCollectionViewCell
         
         let imageData = imageDatas[indexPath.row]
-        cell.imageView.image = images[imageData.url!]
+        if imageData.image == nil {
+            Utils.showActivityIndicator(cell, activityIndicator: cell.activityIndicator, alpha: 1.0)
+        }
+        else {
+            cell.imageView.image = images[imageData.url!]
+            Utils.hideActivityIndicator(cell, activityIndicator: cell.activityIndicator)
+        }
+        
+        print("row: \(indexPath.row) -- image: \(cell.imageView.image != nil)")
         
         return cell
     }
