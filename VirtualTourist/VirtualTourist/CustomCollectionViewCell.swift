@@ -13,4 +13,13 @@ class CustomCollectionViewCell: UICollectionViewCell {
     //# MARK: Outlets
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    
+    
+    //# MARK: Overrides
+    override func prepareForReuse() {
+        
+        imageView.image = nil
+        
+        super.prepareForReuse()
+    }
 }

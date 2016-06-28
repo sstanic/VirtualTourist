@@ -223,11 +223,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     
                     imageData.image = imgData
                     self.photoAlbumCollectionView.reloadData()
-                    
-                    print("reload data....")
-                    print(self.images)
-                    print("----")
-                    print(self.imageDatas)
                 }
                 
                 dispatch_group_leave(downloadGroup)
@@ -239,7 +234,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 self.reloadButton.enabled = true
                 self.isCreatingImages = false
             }
-            
         }
         
         DataStore.sharedInstance().saveContext() { (success, error) in
@@ -303,10 +297,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             Utils.hideActivityIndicator(cell, activityIndicator: cell.activityIndicator)
         }
         
-        print("row: \(indexPath.row) -- image: \(cell.imageView.image != nil)")
-        
         return cell
     }
+    
     
     
     //# MARK: UIViewControllerPreviewingDelegate
