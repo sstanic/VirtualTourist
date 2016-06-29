@@ -49,11 +49,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     
     //# MARK: Actions
-    @IBAction func reloadImages(sender: AnyObject) {
+    @IBAction func loadNewImages(sender: AnyObject) {
         
         noImagesTextField.hidden = true
+        reloadButton.enabled = false
         
-        DataStore.sharedInstance().reloadImages(pin) { (success, results, error) in
+        DataStore.sharedInstance().loadNewImages(pin) { (success, results, error) in
             
             let resultsCount = results.imageDatas?.count
             
@@ -62,15 +63,21 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     
                     dispatch_async(Utils.GlobalMainQueue) {
                         
-                        self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
-                        self.images = self.createEmptyImageDictionary(self.imageDatas)
+                        for mo in results.imageDatas! {
+                            let id = mo as! ImageData
+                            
+                            if !self.imageDatas.contains(id) {
+                                
+                                self.imageDatas.append(id)
+                                self.images[id.url!] = nil
+                            }
+                        }
                         
                         self.photoAlbumCollectionView.reloadData()
                         self.createUIImages()
                     }
                 }
                 else {
-                    
                     dispatch_async(Utils.GlobalMainQueue) {
                         
                         self.noImagesTextField.hidden = false
@@ -84,7 +91,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
     
-    //# MARK: Initialize
+    //# MARK: - Initialize
     private func initializeCollectionView() {
         
         // remove space on top of collection view
@@ -215,8 +222,16 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     }
                 }
                 
-                if let img = UIImage(data: imgData!) {
-                    self.images[photo_url] = img
+                if let imgData = imgData {
+                    if let img = UIImage(data: imgData) {
+                        self.images[photo_url] = img
+                    }
+                    else {
+                        self.images[photo_url] = UIImage(named: "imageNotFound")
+                    }
+                }
+                else {
+                    self.images[photo_url] = UIImage(named: "imageNotFound")
                 }
                 
                 dispatch_async(Utils.GlobalMainQueue) {
@@ -234,13 +249,20 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 self.reloadButton.enabled = true
                 self.isCreatingImages = false
             }
-        }
-        
-        DataStore.sharedInstance().saveContext() { (success, error) in
             
-            if !success {
-                print(error)
-                Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
+            DataStore.sharedInstance().saveContext() { (success, error) in
+                
+                if !success {
+                    print(error)
+                    Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
+                }
+            }
+            
+            if Constants.ScrollToBottom {
+                
+                let itemIndex = self.collectionView(self.photoAlbumCollectionView, numberOfItemsInSection: 0) - 1
+                let lastItemIndex = NSIndexPath(forItem: itemIndex, inSection: 0)
+                self.photoAlbumCollectionView.scrollToItemAtIndexPath(lastItemIndex, atScrollPosition: .Bottom, animated: true)
             }
         }
     }
@@ -301,8 +323,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     }
     
     
-    
-    //# MARK: UIViewControllerPreviewingDelegate
+    //# MARK: - UIViewControllerPreviewingDelegate
+    //          Can only be used with devices that support force touch
     func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
         
         let offset = photoAlbumCollectionView.frame.origin.y

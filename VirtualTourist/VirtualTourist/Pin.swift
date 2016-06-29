@@ -18,6 +18,7 @@ class Pin: NSManagedObject {
             self.title = title
             self.latitude = latitude
             self.longitude = longitude
+            self.imageSet = 1
         }
         else {
             fatalError("Unable to find Entity name!")

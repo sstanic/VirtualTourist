@@ -15,7 +15,8 @@ class DataStore {
     let stack = CoreDataStack(modelName: "VirtualTourist")!
     var pins = [Pin]()
     
-    //# MARK: Data Model
+    
+    //# MARK: - Data Model
     func createPin(latitude: Double, longitude: Double, title: String, createPinCompletionHandler: (success: Bool, result: Pin, error: NSError?) -> Void) {
 
         let pin = Pin(latitude: latitude, longitude: longitude, title: title, context: self.stack.context)
@@ -85,11 +86,12 @@ class DataStore {
     }
     
     
-    //# MARK: Load/Access Images
+    //# MARK: - Load/Access Images
     func getImages(pin: Pin, getCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
+        let page = 1
         
         if pin.imageDatas?.count > 0 {
             print("Using locally saved image data.")
@@ -100,7 +102,7 @@ class DataStore {
         
             print("Loading image data from web service.")
             
-            WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
+            WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
                 
                 if success {
                     
@@ -108,7 +110,7 @@ class DataStore {
                         var imageDatas = [ImageData]()
                         
                         // create image entities
-                        for result in results! {
+                        for result in results!.urls {
                             
                             let imageData = self.createImageData(result)
                             imageDatas.append(imageData)
@@ -136,22 +138,24 @@ class DataStore {
         }
     }
 
-    func reloadImages(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+    func loadNewImages(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
         
-        print("Reloading image data from web service.")
+        let page = Int(pin.imageSet!) + 1
         
-        WSClient.sharedInstance().getImages(lat, longitude: lon) { (success, results, error) in
+        print("Adding additional (new) images from web service.")
+        
+        WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
             
             if success {
-                
-                var imageDatas = [ImageData]()
-                
                 dispatch_async(Utils.GlobalMainQueue) {
+                    
+                    var imageDatas = pin.imageDatas?.allObjects as! [ImageData]
+                    
                     // create image entities
-                    for result in results! {
+                    for result in results!.urls {
                         
                         let imageData = self.createImageData(result)
                         
@@ -159,16 +163,19 @@ class DataStore {
                         let filter = NSPredicate(format: "url == %@", result)
                         let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
                         
-                        // if there is a result, use the local image
-                        if filteredImages?.count > 0 {
-                            let filteredImageData = filteredImages?.first as? ImageData
-                            imageData.image = filteredImageData?.image
+                        // if there is no result, add image to set of images
+                        if filteredImages?.count == 0 {
+                            imageDatas.append(imageData)
                         }
-                        
-                        imageDatas.append(imageData)
                     }
                     
                     pin.imageDatas = NSSet(array: imageDatas)
+                    pin.imageSet = page
+                    
+                    // if no more pages are available, reset counter (keep it simple)
+                    if Int(pin.imageSet!) >= results?.pages {
+                        pin.imageSet = 0
+                    }
                     
                     self.saveContext() { (success, error) in
                         
@@ -188,9 +195,85 @@ class DataStore {
             }
         }
     }
+    
+    func loadImagesAfterPinMoved(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+        
+        let lat = Double(pin.latitude!)
+        let lon = Double(pin.longitude!)
+        
+        let page = 1
+        
+        print("Loading image data from web service and checking against available images.")
+
+        WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
+            
+            if success {
+                dispatch_async(Utils.GlobalMainQueue) {
+                    
+                    var imageDatas = [ImageData]()
+                    
+                    // create image entities
+                    for result in results!.urls {
+                        
+                        // check existing image data, if url is known
+                        let filter = NSPredicate(format: "url == %@", result)
+                        let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
+                        
+                        // if there is a match, add available image - else add new
+                        if filteredImages?.count > 0 {
+                            imageDatas.append(filteredImages?.first as! ImageData)
+                        }
+                        else {
+                            let imageData = self.createImageData(result)
+                            imageDatas.append(imageData)
+                        }
+                    }
+                    
+                    // remove old images (outside of pin region)
+                    for id in pin.imageDatas! {
+                        
+                        if !imageDatas.contains(id as! ImageData) {
+                            DataStore.sharedInstance().deleteImageData(id as! ImageData) { (success, error) in
+                                
+                                if !success {
+                                    print(error)
+                                    reloadCompletionHandler(success: false, results: pin, error: error)
+                                    return
+                                }
+                            }
+                        }
+                    }
+
+                    pin.imageDatas = NSSet(array: imageDatas)
+                    pin.imageSet = page
+                    
+                    // if no more pages are available, reset counter (keep it simple)
+                    if Int(pin.imageSet!) >= results?.pages {
+                        pin.imageSet = 0
+                    }
+                    
+                    self.saveContext() { (success, error) in
+                        
+                        if !success {
+                            print(error)
+                            reloadCompletionHandler(success: false, results: pin, error: error)
+                            return
+                        }
+                    }
+                    
+                    // return with success
+                    reloadCompletionHandler(success: true, results: pin, error: nil)
+                }
+            }
+            else {
+                print(error)
+                reloadCompletionHandler(success: false, results: pin, error: error)
+            }
+        }
+    }
 
     
-    //# MARK: Shared Instance
+    //# MARK: - Shared Instance
     class func sharedInstance() -> DataStore {
         
         struct Singleton {

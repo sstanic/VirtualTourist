@@ -17,9 +17,9 @@ class WSClient {
 
     
     //# MARK: Data Access
-    func getImages(latitude: Double, longitude: Double, completionHandlerForGet: (success: Bool, results: [String]?, error: NSError?) -> Void) {
+    func getImages(latitude: Double, longitude: Double, page: Int, completionHandlerForGet: (success: Bool, results: FlickrData?, error: NSError?) -> Void) {
         
-        getDataAccessGetResults(latitude: latitude, longitude: longitude, perPage: WSClient.FlickrParameterValues.PerPage) { (success, results, error) in
+        getDataAccessGetResults(latitude: latitude, longitude: longitude, page: page, perPage: WSClient.FlickrParameterValues.PerPage) { (success, results, error) in
             
             if success {
                 guard let resultList = results![FlickrResponseKeys.Photos] as? [String:AnyObject] else {
@@ -38,6 +38,14 @@ class WSClient {
                     return
                 }
                 
+                guard let pages = resultList[WSClient.FlickrResponseKeys.Pages] as? Int else {
+                    let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Pages)' not found in get-results."]
+                    print(userInfo)
+                    
+                    completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
+                    return
+                }
+                
                 var urls = [String]()
                 
                 for photo in photos {
@@ -46,7 +54,9 @@ class WSClient {
                     }
                 }
                 
-                completionHandlerForGet(success: true, results: urls, error: nil)
+                let flickrData = FlickrData(urls: urls, pages: pages)
+                
+                completionHandlerForGet(success: true, results: flickrData, error: nil)
             }
             else {
                 print(error)
@@ -57,7 +67,7 @@ class WSClient {
 
     
     //# MARK: - URL Request Data Tasks Prep & Call
-    private func getDataAccessGetResults(latitude latitude: Double, longitude: Double, perPage: Int, completionHandlerForGetResults: (success: Bool, results: [String:AnyObject]?, error: NSError?) -> Void) {
+    private func getDataAccessGetResults(latitude latitude: Double, longitude: Double, page: Int, perPage: Int, completionHandlerForGetResults: (success: Bool, results: [String:AnyObject]?, error: NSError?) -> Void) {
         
         // specify parameters
         let parameters: [String:AnyObject] = [
@@ -65,8 +75,8 @@ class WSClient {
             WSClient.FlickrParameterKeys.APIKey: WSClient.FlickrParameterValues.APIKey,
             WSClient.FlickrParameterKeys.Latitude: latitude,
             WSClient.FlickrParameterKeys.Longitude: longitude,
+            WSClient.FlickrParameterKeys.Page: page,
             WSClient.FlickrParameterKeys.PerPage: perPage,
-            
             WSClient.FlickrParameterKeys.SafeSearch: WSClient.FlickrParameterValues.UseSafeSearch,
             WSClient.FlickrParameterKeys.Extras: WSClient.FlickrParameterValues.MediumURL,
             WSClient.FlickrParameterKeys.Format: WSClient.FlickrParameterValues.ResponseFormat,
@@ -81,7 +91,6 @@ class WSClient {
                 
                 print(error)
                 completionHandlerForGetResults(success: false, results: nil, error: error)
-                
             }
             else {
                 if let results = results as? [String:AnyObject] {

@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1207C6F11D1DB586000E84E2 /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1207C6F01D1DB586000E84E2 /* Pin+CoreDataProperties.swift */; };
+		1205CD631D231E0E0080D49C /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1205CD621D231E0E0080D49C /* Pin+CoreDataProperties.swift */; };
+		1205CD651D2322610080D49C /* FlickrData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1205CD641D2322610080D49C /* FlickrData.swift */; };
 		1207C6F31D1E3D5A000E84E2 /* PhotoDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1207C6F21D1E3D5A000E84E2 /* PhotoDetailViewController.swift */; };
 		123752001D1912C500BAB15E /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123751FF1D1912C500BAB15E /* CoreDataStack.swift */; };
 		123752061D1912E600BAB15E /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123752021D1912E600BAB15E /* Pin.swift */; };
@@ -31,7 +32,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1207C6F01D1DB586000E84E2 /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		1205CD621D231E0E0080D49C /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		1205CD641D2322610080D49C /* FlickrData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrData.swift; sourceTree = "<group>"; };
 		1207C6F21D1E3D5A000E84E2 /* PhotoDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoDetailViewController.swift; sourceTree = "<group>"; };
 		123751FF1D1912C500BAB15E /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		123752021D1912E600BAB15E /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 			children = (
 				123CE71B1D0B43380071A8F6 /* DataStore.swift */,
 				123CE71D1D0B73F50071A8F6 /* MapItem.swift */,
+				1205CD641D2322610080D49C /* FlickrData.swift */,
 			);
 			name = Data;
 			sourceTree = "<group>";
@@ -106,7 +109,7 @@
 		129F5CB01D078B4A00346422 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				1207C6F01D1DB586000E84E2 /* Pin+CoreDataProperties.swift */,
+				1205CD621D231E0E0080D49C /* Pin+CoreDataProperties.swift */,
 				123752021D1912E600BAB15E /* Pin.swift */,
 				1269838F1D1D19C700E12F14 /* ImageData+CoreDataProperties.swift */,
 				123752041D1912E600BAB15E /* ImageData.swift */,
@@ -242,12 +245,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				123CE7181D0A5FDA0071A8F6 /* WSClientConstants.swift in Sources */,
+				1205CD631D231E0E0080D49C /* Pin+CoreDataProperties.swift in Sources */,
 				12EC38991D067F430089CAAE /* MapViewController.swift in Sources */,
 				126983901D1D19C700E12F14 /* ImageData+CoreDataProperties.swift in Sources */,
 				123CE71E1D0B73F50071A8F6 /* MapItem.swift in Sources */,
 				123CE7141D09FC680071A8F6 /* CustomCollectionViewCell.swift in Sources */,
+				1205CD651D2322610080D49C /* FlickrData.swift in Sources */,
 				123CE71C1D0B43380071A8F6 /* DataStore.swift in Sources */,
-				1207C6F11D1DB586000E84E2 /* Pin+CoreDataProperties.swift in Sources */,
 				123752001D1912C500BAB15E /* CoreDataStack.swift in Sources */,
 				123752081D1912E600BAB15E /* ImageData.swift in Sources */,
 				1207C6F31D1E3D5A000E84E2 /* PhotoDetailViewController.swift in Sources */,

@@ -118,9 +118,9 @@
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fhn-WW-7lh">
                                 <rect key="frame" x="0.0" y="570" width="600" height="30"/>
-                                <state key="normal" title="Reload all images from flickr"/>
+                                <state key="normal" title="Add new images"/>
                                 <connections>
-                                    <action selector="reloadImages:" destination="skv-Yh-u8t" eventType="touchUpInside" id="y6R-0G-oUw"/>
+                                    <action selector="loadNewImages:" destination="skv-Yh-u8t" eventType="touchUpInside" id="Lsb-jc-cD3"/>
                                 </connections>
                             </button>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="No images" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="oDY-5N-d7v">

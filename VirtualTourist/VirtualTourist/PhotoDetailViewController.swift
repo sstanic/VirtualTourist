@@ -31,7 +31,7 @@ class PhotoDetailViewController: UIViewController {
     }
     
     
-    //# MARK: Gesture Recognizer
+    //# MARK: - Gesture Recognizer
     private func initializeGestureRecognizer() {
         
         let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchImage))

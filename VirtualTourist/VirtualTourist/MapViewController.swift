@@ -38,7 +38,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
 
     
-    //# MARK: Initialize
+    //# MARK: - Initialize
     private func initializeMap() {
         
         mapView.delegate = self
@@ -81,7 +81,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     
-    //# MARK: Pin, Image, Geocode
+    //# MARK: - Pin, Image, Geocode
     @objc func createNewPin(gestureRecognizer: UILongPressGestureRecognizer) {
         
         var touchPoint: CGPoint = gestureRecognizer.locationInView(mapView)
@@ -228,7 +228,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                             pin?.longitude = mapItem.coordinate.longitude
                             
                             pin?.title = mapItem.title
-                            DataStore.sharedInstance().reloadImages(pin!) { (success, results, error) in
+                            pin?.imageSet = 1
+                            DataStore.sharedInstance().loadImagesAfterPinMoved(pin!) { (success, results, error) in
                                 
                                 if !success {
                                     print(error)

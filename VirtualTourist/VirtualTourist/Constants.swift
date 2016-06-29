@@ -18,4 +18,8 @@ class Constants {
     
     static let MapLatitudeDelta = "mapLatitudeDelta"
     static let MapLongitudeDelta = "mapLongitudeDelta"
+    
+    
+    //# MARK: Misc
+    static let ScrollToBottom = false
 }
