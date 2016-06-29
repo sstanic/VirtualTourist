@@ -97,14 +97,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             geocodeMapItem(newMapItem!) { (success, error) in
                 
                 if success {
-                    DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.newMapItem!.title!) { (succes, result, error) in
-                    
-                        if success {
-                            let pin = result
-                            self.newMapItem!.pin = pin
-                            self.showImages(pin)
-                        }
-                    }
+                    let pin = DataStore.sharedInstance().createPin(touchMapCoordinate.latitude, longitude: touchMapCoordinate.longitude, title: self.newMapItem!.title!)
+                    self.newMapItem!.pin = pin
+                    self.showImages(pin)
                 }
                 else {
                     print(error)
@@ -141,7 +136,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         CLGeocoder().reverseGeocodeLocation(location) { (placemark, error) in
             
             if error != nil {
-                address = "<unknown>"
+                mapItem.title = "<unknown>"
+                geocodeCompletionHandler(success: false, error: error)
+                return
             }
             else {
                 if (placemark?.count > 0) {

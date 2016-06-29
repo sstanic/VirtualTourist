@@ -17,12 +17,12 @@ class DataStore {
     
     
     //# MARK: - Data Model
-    func createPin(latitude: Double, longitude: Double, title: String, createPinCompletionHandler: (success: Bool, result: Pin, error: NSError?) -> Void) {
+    func createPin(latitude: Double, longitude: Double, title: String) -> Pin {
 
         let pin = Pin(latitude: latitude, longitude: longitude, title: title, context: self.stack.context)
         self.pins.append(pin)
         
-        createPinCompletionHandler(success: true, result: pin, error: nil)
+        return pin
     }
     
     private func createImageData(url: String) -> ImageData {
@@ -99,14 +99,13 @@ class DataStore {
             getCompletionHandler(success: true, results: pin, error: nil)
         }
         else {
-        
             print("Loading image data from web service.")
             
             WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
                 
                 if success {
-                    
                     dispatch_async(Utils.GlobalMainQueue) {
+                        
                         var imageDatas = [ImageData]()
                         
                         // create image entities
