@@ -28,8 +28,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     var imageDatas = [ImageData]()
     var images = [String:UIImage]()
     
-    var touchedCell: (cell: UICollectionViewCell, indexPath: NSIndexPath)?
-    
     
     //# MARK: Overrides
     override func viewDidLoad() {
@@ -348,20 +346,21 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         return cell
     }
     
-    func collectionView(collectionView: UICollectionView, didHighlightItemAtIndexPath indexPath: NSIndexPath)
-    {
-        touchedCell = (cell: self.collectionView(photoAlbumCollectionView, cellForItemAtIndexPath: indexPath), indexPath: indexPath)
-    }
-    
     
     //# MARK: - UIViewControllerPreviewingDelegate
     //          Can only be used with devices that support force touch
     func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
         
-        guard let cell = touchedCell?.cell else { return nil }
+        let offset = photoAlbumCollectionView.frame.origin.y
+        let contentOffset = photoAlbumCollectionView.contentOffset.y
+        
+        let tapLocation = CGPoint(x: location.x, y: location.y - offset + contentOffset)
+        
+        guard let indexPath = photoAlbumCollectionView?.indexPathForItemAtPoint(tapLocation) else { return nil }
+        guard let cell = photoAlbumCollectionView?.cellForItemAtIndexPath(indexPath) else { return nil }
         guard let photoDetailViewController = storyboard?.instantiateViewControllerWithIdentifier("PhotoDetailViewController") as? PhotoDetailViewController else { return nil }
         
-        let imageData = imageDatas[touchedCell!.indexPath.row]
+        let imageData = imageDatas[indexPath.row]
         let image = images[imageData.url!]
         photoDetailViewController.image = image
         
@@ -378,14 +377,18 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     func longPressHandler(recognizer: UILongPressGestureRecognizer)
     {
-        guard let touchedCell = touchedCell
-            where recognizer.state == UIGestureRecognizerState.Began else {
-                return
-        }
+        guard recognizer.state == UIGestureRecognizerState.Began else { return }
         
+        let offset = photoAlbumCollectionView.frame.origin.y
+        let contentOffset = photoAlbumCollectionView.contentOffset.y
+        
+        let location = recognizer.locationInView(self.view)
+        let tapLocation = CGPoint(x: location.x, y: location.y - offset + contentOffset)
+        
+        guard let indexPath = photoAlbumCollectionView?.indexPathForItemAtPoint(tapLocation) else { return }
         guard let photoDetailViewController = storyboard?.instantiateViewControllerWithIdentifier("PhotoDetailViewController") as? PhotoDetailViewController else { return }
         
-        let imageData = imageDatas[(touchedCell.indexPath.row)]
+        let imageData = imageDatas[(indexPath.row)]
         let image = images[imageData.url!]
         photoDetailViewController.image = image
         
