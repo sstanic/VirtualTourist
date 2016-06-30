@@ -151,7 +151,11 @@ class DataStore {
             if success {
                 dispatch_async(Utils.GlobalMainQueue) {
                     
-                    var imageDatas = pin.imageDatas?.allObjects as! [ImageData]
+                    var imageDatas = [ImageData]()
+                    
+                    if Constants.AddImagesWithoutDeletion {
+                        imageDatas = pin.imageDatas?.allObjects as! [ImageData]
+                    }
                     
                     // create image entities
                     for result in results!.urls {
@@ -162,9 +166,37 @@ class DataStore {
                         let filter = NSPredicate(format: "url == %@", result)
                         let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
                         
-                        // if there is no result, add image to set of images
-                        if filteredImages?.count == 0 {
+                        if Constants.AddImagesWithoutDeletion {
+                            
+                            // if there is no result, add image to set of images
+                            if filteredImages?.count == 0 {
+                                imageDatas.append(imageData)
+                            }
+                        }
+                        else {
+                            
+                            // if image is already loaded, use it
+                            if filteredImages?.count > 1 {
+                                let currentImageData = filteredImages?.first as! ImageData
+                                imageData.image = currentImageData.image
+                            }
+                            
                             imageDatas.append(imageData)
+                        }
+                    }
+                    
+                    // remove old images (outside of pin region)
+                    for id in pin.imageDatas! {
+                        
+                        if !imageDatas.contains(id as! ImageData) {
+                            DataStore.sharedInstance().deleteImageData(id as! ImageData) { (success, error) in
+                                
+                                if !success {
+                                    print(error)
+                                    reloadCompletionHandler(success: false, results: pin, error: error)
+                                    return
+                                }
+                            }
                         }
                     }
                     

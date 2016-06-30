@@ -22,4 +22,10 @@ class Constants {
     
     //# MARK: Misc
     static let ScrollToBottom = false
+    static let AddImagesWithoutDeletion = false
+    
+    
+    //# MARK: Button text
+    static let AddNewImagesText = "Add new images"
+    static let LoadNewImagesText = "Load new images"
 }

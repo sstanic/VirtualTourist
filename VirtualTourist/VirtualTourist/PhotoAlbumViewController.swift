@@ -38,6 +38,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         
         initializeCollectionView()
         initializeForceTouch()
+        initializeButton()
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -66,10 +67,19 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                         for mo in results.imageDatas! {
                             let id = mo as! ImageData
                             
-                            if !self.imageDatas.contains(id) {
+                            if Constants.AddImagesWithoutDeletion {
+                                if !self.imageDatas.contains(id) {
+                                    
+                                    self.imageDatas.append(id)
+                                    self.images[id.url!] = nil
+                                }
+                            }
+                            else {
+                                self.imageDatas = results.imageDatas?.allObjects as! [ImageData]
+                                self.images = self.createEmptyImageDictionary(self.imageDatas)
+                                self.photoAlbumCollectionView.reloadData()
                                 
-                                self.imageDatas.append(id)
-                                self.images[id.url!] = nil
+                                self.createUIImages()
                             }
                         }
                         
@@ -127,6 +137,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
     
+    private func initializeButton() {
+        
+        if Constants.AddImagesWithoutDeletion {
+            reloadButton.setTitle(Constants.AddNewImagesText, forState: .Normal)
+        }
+        else {
+            reloadButton.setTitle(Constants.LoadNewImagesText, forState: .Normal)
+        }
+    }
     
     //# MARK: Map
     private func showPinOnMap(pin: Pin) {
@@ -203,11 +222,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 
                 var photo_url: String = ""
                 var noImage: Bool = false
-                var imgData: NSData?
+                var imgDataImage: NSData?
                 
                 dispatch_sync(Utils.GlobalMainQueue) {
                     photo_url = imageData.url!
-                    imgData = imageData.image
+                    imgDataImage = imageData.image
                     noImage = imageData.image == nil
                 }
                 
@@ -217,13 +236,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     
                     if let url = NSURL(string: photo_url) {
                         if let data = NSData(contentsOfURL: url) {
-                            imgData = data
+                            imgDataImage = data
                         }
                     }
                 }
                 
-                if let imgData = imgData {
-                    if let img = UIImage(data: imgData) {
+                if let imgDataImage = imgDataImage {
+                    if let img = UIImage(data: imgDataImage) {
+                        
                         self.images[photo_url] = img
                     }
                     else {
@@ -236,7 +256,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                 
                 dispatch_async(Utils.GlobalMainQueue) {
                     
-                    imageData.image = imgData
+                    imageData.image = imgDataImage
                     self.photoAlbumCollectionView.reloadData()
                 }
                 
