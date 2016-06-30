@@ -308,7 +308,7 @@ class DataStore {
     class func sharedInstance() -> DataStore {
         
         struct Singleton {
-            static var sharedInstance = DataStore()
+            static let sharedInstance = DataStore()
         }
         return Singleton.sharedInstance
     }

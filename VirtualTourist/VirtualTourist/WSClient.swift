@@ -198,7 +198,7 @@ class WSClient {
     class func sharedInstance() -> WSClient {
         
         struct Singleton {
-            static var sharedInstance = WSClient()
+            static let sharedInstance = WSClient()
         }
         return Singleton.sharedInstance
     }
