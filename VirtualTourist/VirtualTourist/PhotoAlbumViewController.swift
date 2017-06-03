@@ -8,6 +8,30 @@
 
 import UIKit
 import MapKit
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UIViewControllerPreviewingDelegate {
     
@@ -34,14 +58,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         
         super.viewDidLoad()
         
-        noImagesTextField.hidden = true
+        noImagesTextField.isHidden = true
         
         initializeCollectionView()
         initializeForceTouch()
         initializeButton()
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         
         showPinOnMap(pin)
         setCurrentLocation(pin)
@@ -50,10 +74,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     
     //# MARK: Actions
-    @IBAction func loadNewImages(sender: AnyObject) {
+    @IBAction func loadNewImages(_ sender: AnyObject) {
         
-        noImagesTextField.hidden = true
-        reloadButton.enabled = false
+        noImagesTextField.isHidden = true
+        reloadButton.isEnabled = false
         
         DataStore.sharedInstance().loadNewImages(pin) { (success, results, error) in
             
@@ -62,7 +86,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             if success {
                 if resultsCount > 0 {
                     
-                    dispatch_async(Utils.GlobalMainQueue) {
+                    Utils.GlobalMainQueue.async {
                         
                         for mo in results.imageDatas! {
                             let id = mo as! ImageData
@@ -88,21 +112,21 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     }
                 }
                 else {
-                    dispatch_async(Utils.GlobalMainQueue) {
+                    Utils.GlobalMainQueue.async {
                         
-                        self.noImagesTextField.hidden = false
+                        self.noImagesTextField.isHidden = false
                     }
                 }
             }
             else {
-                print(error)
+                print(error as Any)
                 Utils.showAlert(self, alertMessage: "An error occured while reloading images.", completion: nil)
             }
         }
     }
     
     //# MARK: - Initialize
-    private func initializeCollectionView() {
+    fileprivate func initializeCollectionView() {
         
         // remove space on top of collection view
         self.automaticallyAdjustsScrollViewInsets = false;
@@ -126,14 +150,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         
         collectionViewFlowLayout.minimumInteritemSpacing = space
         collectionViewFlowLayout.minimumLineSpacing = space
-        collectionViewFlowLayout.itemSize = CGSizeMake(dimension, dimension)
+        collectionViewFlowLayout.itemSize = CGSize(width: dimension, height: dimension)
     }
     
-    private func initializeForceTouch() {
+    fileprivate func initializeForceTouch() {
         
-        if traitCollection.forceTouchCapability == .Available {
+        if traitCollection.forceTouchCapability == .available {
             
-            registerForPreviewingWithDelegate(self, sourceView: view)
+            registerForPreviewing(with: self, sourceView: view)
         }
         else {
             let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressHandler))
@@ -141,25 +165,25 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
     
-    private func initializeButton() {
+    fileprivate func initializeButton() {
         
         if Constants.AddImagesWithoutDeletion {
-            reloadButton.setTitle(Constants.AddNewImagesText, forState: .Normal)
+            reloadButton.setTitle(Constants.AddNewImagesText, for: UIControlState())
         }
         else {
-            reloadButton.setTitle(Constants.LoadNewImagesText, forState: .Normal)
+            reloadButton.setTitle(Constants.LoadNewImagesText, for: UIControlState())
         }
     }
     
     //# MARK: Map
-    private func showPinOnMap(pin: Pin) {
+    fileprivate func showPinOnMap(_ pin: Pin) {
         
         let location = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
         let mapItem = MapItem(title: pin.title!, location: location)
         mapView.addAnnotation(mapItem)
     }
     
-    private func setCurrentLocation(pin: Pin) {
+    fileprivate func setCurrentLocation(_ pin: Pin) {
         
         let coordinate = CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!))
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(coordinate, regionRadius * 2.0, regionRadius * 2.0)
@@ -168,7 +192,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     
     //# MARK: Images
-    private func createEmptyImageDictionary(imageDatas: [ImageData]) -> [String:UIImage] {
+    fileprivate func createEmptyImageDictionary(_ imageDatas: [ImageData]) -> [String:UIImage] {
         
         var images = [String:UIImage]()
         
@@ -182,16 +206,16 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         return images
     }
     
-    private func loadImages(pin: Pin) {
+    fileprivate func loadImages(_ pin: Pin) {
         
-        noImagesTextField.hidden = true
+        noImagesTextField.isHidden = true
         
         DataStore.sharedInstance().getImages(pin) { (success, results, error) in
             
             let resultsCount = results.imageDatas?.count
             
             if success {
-                dispatch_async(Utils.GlobalMainQueue) {
+                Utils.GlobalMainQueue.async {
                     
                     if resultsCount > 0 {
                         
@@ -202,44 +226,44 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                         self.createUIImages()
                     }
                     else {
-                        self.noImagesTextField.hidden = false
+                        self.noImagesTextField.isHidden = false
                     }
                 }
             }
             else {
-                print(error)
+                print(error as Any)
                 Utils.showAlert(self, alertMessage: "An error occured while loading images from flickr.", completion: nil)
             }
         }
     }
     
-    private func createUIImages() {
+    fileprivate func createUIImages() {
         
-        reloadButton.enabled = false
+        reloadButton.isEnabled = false
         isCreatingImages = true
         
-        dispatch_async(Utils.GlobalBackgroundQueue) {
+        Utils.GlobalBackgroundQueue.async {
             
-            let downloadGroup = dispatch_group_create()
+            let downloadGroup = DispatchGroup()
             
             for imageData in self.imageDatas {
                 
                 var photo_url: String = ""
                 var noImage: Bool = false
-                var imgDataImage: NSData?
+                var imgDataImage: Data?
                 
-                dispatch_sync(Utils.GlobalMainQueue) {
+                Utils.GlobalMainQueue.sync {
                     photo_url = imageData.url!
                     imgDataImage = imageData.image
                     noImage = imageData.image == nil
                 }
                 
-                dispatch_group_enter(downloadGroup)
+                downloadGroup.enter()
                 
                 if noImage {
                     
-                    if let url = NSURL(string: photo_url) {
-                        if let data = NSData(contentsOfURL: url) {
+                    if let url = URL(string: photo_url) {
+                        if let data = try? Data(contentsOf: url) {
                             imgDataImage = data
                         }
                     }
@@ -258,26 +282,26 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
                     self.images[photo_url] = UIImage(named: "imageNotFound")
                 }
                 
-                dispatch_async(Utils.GlobalMainQueue) {
+                Utils.GlobalMainQueue.async {
                     
                     imageData.image = imgDataImage
                     self.photoAlbumCollectionView.reloadData()
                 }
                 
-                dispatch_group_leave(downloadGroup)
+                downloadGroup.leave()
             }
             
-            dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER)
-            dispatch_async(Utils.GlobalMainQueue) {
+            _ = downloadGroup.wait(timeout: DispatchTime.distantFuture)
+            Utils.GlobalMainQueue.async {
                 
-                self.reloadButton.enabled = true
+                self.reloadButton.isEnabled = true
                 self.isCreatingImages = false
             }
             
             DataStore.sharedInstance().saveContext() { (success, error) in
                 
                 if !success {
-                    print(error)
+                    print(error as Any)
                     Utils.showAlert(self, alertMessage: "An error occured while saving the images to the data base.", completion: nil)
                 }
             }
@@ -285,26 +309,26 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
             if Constants.ScrollToBottom {
                 
                 let itemIndex = self.collectionView(self.photoAlbumCollectionView, numberOfItemsInSection: 0) - 1
-                let lastItemIndex = NSIndexPath(forItem: itemIndex, inSection: 0)
-                self.photoAlbumCollectionView.scrollToItemAtIndexPath(lastItemIndex, atScrollPosition: .Bottom, animated: true)
+                let lastItemIndex = IndexPath(item: itemIndex, section: 0)
+                self.photoAlbumCollectionView.scrollToItem(at: lastItemIndex, at: .bottom, animated: true)
             }
         }
     }
     
-    private func deleteImage(index: Int) {
+    fileprivate func deleteImage(_ index: Int) {
         
         let imageData = imageDatas[index]
-        images.removeValueForKey(imageData.url!)
-        imageDatas.removeAtIndex(index)
+        images.removeValue(forKey: imageData.url!)
+        imageDatas.remove(at: index)
         
         if (images.count == 0) {
-            noImagesTextField.hidden = false
+            noImagesTextField.isHidden = false
         }
         
         DataStore.sharedInstance().deleteImageData(imageData) { (success, error) in
             
             if !success {
-                print(error)
+                print(error as Any)
                 Utils.showAlert(self, alertMessage: "An error occured while deleting the image.", completion: nil)
             }
         }
@@ -312,7 +336,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     
     //# MARK: - UICollectionViewDelegate
-    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
         if isCreatingImages {
             Utils.showAlert(self, alertMessage: "Cannot delete images while loading. Please wait until all images are loaded.", completion: nil)
@@ -320,27 +344,27 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         }
         
         deleteImage(indexPath.row)
-        collectionView.deleteItemsAtIndexPaths([indexPath])
+        collectionView.deleteItems(at: [indexPath])
     }
     
     
     //# MARK: - UICollectionViewDataSource
-    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
         return imageDatas.count
     }
     
-    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("collectionViewCell", forIndexPath: indexPath) as! CustomCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "collectionViewCell", for: indexPath) as! CustomCollectionViewCell
         
         let imageData = imageDatas[indexPath.row]
         if imageData.image == nil {
-            cell.activityIndicator.hidden = false
+            cell.activityIndicator.isHidden = false
         }
         else {
             cell.imageView.image = images[imageData.url!]
-            cell.activityIndicator.hidden = true
+            cell.activityIndicator.isHidden = true
         }
         
         return cell
@@ -349,16 +373,16 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
     
     //# MARK: - UIViewControllerPreviewingDelegate
     //          Can only be used with devices that support force touch
-    func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
         
         let offset = photoAlbumCollectionView.frame.origin.y
         let contentOffset = photoAlbumCollectionView.contentOffset.y
         
         let tapLocation = CGPoint(x: location.x, y: location.y - offset + contentOffset)
         
-        guard let indexPath = photoAlbumCollectionView?.indexPathForItemAtPoint(tapLocation) else { return nil }
-        guard let cell = photoAlbumCollectionView?.cellForItemAtIndexPath(indexPath) else { return nil }
-        guard let photoDetailViewController = storyboard?.instantiateViewControllerWithIdentifier("PhotoDetailViewController") as? PhotoDetailViewController else { return nil }
+        guard let indexPath = photoAlbumCollectionView?.indexPathForItem(at: tapLocation) else { return nil }
+        guard let cell = photoAlbumCollectionView?.cellForItem(at: indexPath) else { return nil }
+        guard let photoDetailViewController = storyboard?.instantiateViewController(withIdentifier: "PhotoDetailViewController") as? PhotoDetailViewController else { return nil }
         
         let imageData = imageDatas[indexPath.row]
         let image = images[imageData.url!]
@@ -370,28 +394,28 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate, UICo
         return photoDetailViewController
     }
     
-    func previewingContext(previewingContext: UIViewControllerPreviewing, commitViewController viewControllerToCommit: UIViewController) {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
         
-        showViewController(viewControllerToCommit, sender: self)
+        show(viewControllerToCommit, sender: self)
     }
     
-    func longPressHandler(recognizer: UILongPressGestureRecognizer)
+    func longPressHandler(_ recognizer: UILongPressGestureRecognizer)
     {
-        guard recognizer.state == UIGestureRecognizerState.Began else { return }
+        guard recognizer.state == UIGestureRecognizerState.began else { return }
         
         let offset = photoAlbumCollectionView.frame.origin.y
         let contentOffset = photoAlbumCollectionView.contentOffset.y
         
-        let location = recognizer.locationInView(self.view)
+        let location = recognizer.location(in: self.view)
         let tapLocation = CGPoint(x: location.x, y: location.y - offset + contentOffset)
         
-        guard let indexPath = photoAlbumCollectionView?.indexPathForItemAtPoint(tapLocation) else { return }
-        guard let photoDetailViewController = storyboard?.instantiateViewControllerWithIdentifier("PhotoDetailViewController") as? PhotoDetailViewController else { return }
+        guard let indexPath = photoAlbumCollectionView?.indexPathForItem(at: tapLocation) else { return }
+        guard let photoDetailViewController = storyboard?.instantiateViewController(withIdentifier: "PhotoDetailViewController") as? PhotoDetailViewController else { return }
         
         let imageData = imageDatas[(indexPath.row)]
         let image = images[imageData.url!]
         photoDetailViewController.image = image
         
-        showViewController(photoDetailViewController, sender: self)
+        show(photoDetailViewController, sender: self)
     }
 }

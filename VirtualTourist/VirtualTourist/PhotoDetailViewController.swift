@@ -32,7 +32,7 @@ class PhotoDetailViewController: UIViewController {
     
     
     //# MARK: - Gesture Recognizer
-    private func initializeGestureRecognizer() {
+    fileprivate func initializeGestureRecognizer() {
         
         let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchImage))
         imageView.addGestureRecognizer(pinchGestureRecognizer)
@@ -45,21 +45,21 @@ class PhotoDetailViewController: UIViewController {
         imageView.addGestureRecognizer(tapGestureRecognizer)
     }
     
-    @objc func pinchImage(gestureRecognizer: UIPinchGestureRecognizer) {
+    @objc func pinchImage(_ gestureRecognizer: UIPinchGestureRecognizer) {
         
         let scale: CGFloat = gestureRecognizer.scale;
-        gestureRecognizer.view!.transform = CGAffineTransformScale(gestureRecognizer.view!.transform, scale, scale);
+        gestureRecognizer.view!.transform = gestureRecognizer.view!.transform.scaledBy(x: scale, y: scale);
         gestureRecognizer.scale = 1.0;
     }
     
-    @objc func panImage(gestureRecognizer: UIPanGestureRecognizer) {
+    @objc func panImage(_ gestureRecognizer: UIPanGestureRecognizer) {
         
-        let translate = gestureRecognizer.translationInView(self.view)
+        let translate = gestureRecognizer.translation(in: self.view)
         gestureRecognizer.view!.center = CGPoint(x:gestureRecognizer.view!.center.x + translate.x, y:gestureRecognizer.view!.center.y + translate.y)
-        gestureRecognizer.setTranslation(CGPointZero, inView: self.view)
+        gestureRecognizer.setTranslation(CGPoint.zero, in: self.view)
     }
     
-    @objc func tapImage(gestureRecognizer: UITapGestureRecognizer) {
+    @objc func tapImage(_ gestureRecognizer: UITapGestureRecognizer) {
         
         imageView.frame = self.view.frame
     }

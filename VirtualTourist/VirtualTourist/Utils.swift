@@ -11,52 +11,52 @@ import UIKit
 class Utils {
     
     //# MARK: Queuing
-    static var GlobalMainQueue: dispatch_queue_t {
-        return dispatch_get_main_queue()
+    static var GlobalMainQueue: DispatchQueue {
+        return DispatchQueue.main
     }
     
-    static var GlobalUserInteractiveQueue: dispatch_queue_t {
-        return dispatch_get_global_queue(Int(QOS_CLASS_USER_INTERACTIVE.rawValue), 0)
+    static var GlobalUserInteractiveQueue: DispatchQueue {
+        return DispatchQueue.global(qos: .userInteractive)
     }
     
-    static var GlobalUserInitiatedQueue: dispatch_queue_t {
-        return dispatch_get_global_queue(Int(QOS_CLASS_USER_INITIATED.rawValue), 0)
+    static var GlobalUserInitiatedQueue: DispatchQueue {
+        return DispatchQueue.global(qos: .userInitiated)
     }
     
-    static var GlobalUtilityQueue: dispatch_queue_t {
-        return dispatch_get_global_queue(Int(QOS_CLASS_UTILITY.rawValue), 0)
+    static var GlobalUtilityQueue: DispatchQueue {
+        return DispatchQueue.global(qos: .utility)
     }
     
-    static var GlobalBackgroundQueue: dispatch_queue_t {
-        return dispatch_get_global_queue(Int(QOS_CLASS_BACKGROUND.rawValue), 0)
+    static var GlobalBackgroundQueue: DispatchQueue {
+        return DispatchQueue.global(qos: .background)
     }
     
     
     //# MARK: Alert
-    static func showAlert(viewController: UIViewController, alertMessage: String, completion: (() -> Void)?) {
+    static func showAlert(_ viewController: UIViewController, alertMessage: String, completion: (() -> Void)?) {
         
-        dispatch_async(Utils.GlobalMainQueue) {
+        Utils.GlobalMainQueue.async {
             
-            let alertController = UIAlertController(title: "Info", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
-            let action = UIAlertAction(title: "OK", style: .Default) { (action:UIAlertAction!) in
+            let alertController = UIAlertController(title: "Info", message: alertMessage, preferredStyle: UIAlertControllerStyle.alert)
+            let action = UIAlertAction(title: "OK", style: .default) { (action:UIAlertAction!) in
                 if let c = completion {
                     c()
                 }
             }
             alertController.addAction(action)
             
-            viewController.presentViewController(alertController, animated: true, completion: nil)
+            viewController.present(alertController, animated: true, completion: nil)
         }
     }
     
     
     //# MARK: Activity Indicator
-    static func showActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView, alpha: CGFloat) {
+    static func showActivityIndicator(_ view: UIView, activityIndicator: UIActivityIndicatorView, alpha: CGFloat) {
         
-        dispatch_async(Utils.GlobalMainQueue) {
+        Utils.GlobalMainQueue.async {
             
             activityIndicator.startAnimating()
-            activityIndicator.hidden = false
+            activityIndicator.isHidden = false
             
             for subview in view.subviews {
                 subview.alpha = alpha
@@ -67,12 +67,12 @@ class Utils {
         }
     }
     
-    static func hideActivityIndicator(view: UIView, activityIndicator: UIActivityIndicatorView) {
+    static func hideActivityIndicator(_ view: UIView, activityIndicator: UIActivityIndicatorView) {
         
-        dispatch_async(Utils.GlobalMainQueue) {
+        Utils.GlobalMainQueue.async {
             
             activityIndicator.stopAnimating()
-            activityIndicator.hidden = true
+            activityIndicator.isHidden = true
             
             for subview in view.subviews {
                 subview.alpha = 1.0

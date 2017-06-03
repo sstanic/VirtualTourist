@@ -12,12 +12,12 @@ import UIKit
 class WSClient {
     
     //# MARK: Attributes
-    var session = NSURLSession.sharedSession()
+    var session = URLSession.shared
     var sessionID: String? = nil
 
     
     //# MARK: Data Access
-    func getImages(latitude: Double, longitude: Double, page: Int, completionHandlerForGet: (success: Bool, results: FlickrData?, error: NSError?) -> Void) {
+    func getImages(_ latitude: Double, longitude: Double, page: Int, completionHandlerForGet: @escaping (_ success: Bool, _ results: FlickrData?, _ error: NSError?) -> Void) {
         
         getDataAccessGetResults(latitude: latitude, longitude: longitude, page: page, perPage: WSClient.FlickrParameterValues.PerPage) { (success, results, error) in
             
@@ -26,7 +26,7 @@ class WSClient {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Photos)' not found in get-results."]
                     print(userInfo)
                     
-                    completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
+                    completionHandlerForGet(false, nil, NSError(domain: "getImages", code: 1, userInfo: userInfo))
                     return
                 }
                 
@@ -34,7 +34,7 @@ class WSClient {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Photo)' not found in get-results."]
                     print(userInfo)
                     
-                    completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
+                    completionHandlerForGet(false, nil, NSError(domain: "getImages", code: 1, userInfo: userInfo))
                     return
                 }
                 
@@ -42,7 +42,7 @@ class WSClient {
                     let userInfo = [NSLocalizedDescriptionKey : "Parameter '\(FlickrResponseKeys.Pages)' not found in get-results."]
                     print(userInfo)
                     
-                    completionHandlerForGet(success: false, results: nil, error: NSError(domain: "getImages", code: 1, userInfo: userInfo))
+                    completionHandlerForGet(false, nil, NSError(domain: "getImages", code: 1, userInfo: userInfo))
                     return
                 }
                 
@@ -56,90 +56,90 @@ class WSClient {
                 
                 let flickrData = FlickrData(urls: urls, pages: pages)
                 
-                completionHandlerForGet(success: true, results: flickrData, error: nil)
+                completionHandlerForGet(true, flickrData, nil)
             }
             else {
-                print(error)
-                completionHandlerForGet(success: false, results: nil, error: error)
+                print(error ?? "An error occured.")
+                completionHandlerForGet(false, nil, error)
             }
         }
     }
 
     
     //# MARK: - URL Request Data Tasks Prep & Call
-    private func getDataAccessGetResults(latitude latitude: Double, longitude: Double, page: Int, perPage: Int, completionHandlerForGetResults: (success: Bool, results: [String:AnyObject]?, error: NSError?) -> Void) {
+    fileprivate func getDataAccessGetResults(latitude: Double, longitude: Double, page: Int, perPage: Int, completionHandlerForGetResults: @escaping (_ success: Bool, _ results: [String:AnyObject]?, _ error: NSError?) -> Void) {
         
         // specify parameters
         let parameters: [String:AnyObject] = [
-            WSClient.FlickrParameterKeys.Method: WSClient.FlickrParameterValues.SearchMethod,
-            WSClient.FlickrParameterKeys.APIKey: WSClient.FlickrParameterValues.APIKey,
-            WSClient.FlickrParameterKeys.Latitude: latitude,
-            WSClient.FlickrParameterKeys.Longitude: longitude,
-            WSClient.FlickrParameterKeys.Page: page,
-            WSClient.FlickrParameterKeys.PerPage: perPage,
-            WSClient.FlickrParameterKeys.SafeSearch: WSClient.FlickrParameterValues.UseSafeSearch,
-            WSClient.FlickrParameterKeys.Extras: WSClient.FlickrParameterValues.MediumURL,
-            WSClient.FlickrParameterKeys.Format: WSClient.FlickrParameterValues.ResponseFormat,
-            WSClient.FlickrParameterKeys.NoJSONCallback: WSClient.FlickrParameterValues.DisableJSONCallback
+            WSClient.FlickrParameterKeys.Method: WSClient.FlickrParameterValues.SearchMethod as AnyObject,
+            WSClient.FlickrParameterKeys.APIKey: WSClient.FlickrParameterValues.APIKey as AnyObject,
+            WSClient.FlickrParameterKeys.Latitude: latitude as AnyObject,
+            WSClient.FlickrParameterKeys.Longitude: longitude as AnyObject,
+            WSClient.FlickrParameterKeys.Page: page as AnyObject,
+            WSClient.FlickrParameterKeys.PerPage: perPage as AnyObject,
+            WSClient.FlickrParameterKeys.SafeSearch: WSClient.FlickrParameterValues.UseSafeSearch as AnyObject,
+            WSClient.FlickrParameterKeys.Extras: WSClient.FlickrParameterValues.MediumURL as AnyObject,
+            WSClient.FlickrParameterKeys.Format: WSClient.FlickrParameterValues.ResponseFormat as AnyObject,
+            WSClient.FlickrParameterKeys.NoJSONCallback: WSClient.FlickrParameterValues.DisableJSONCallback as AnyObject
         ]
 
         // make the request
-        taskForGETMethod("", parameters: parameters) { (results, error) in
+        _ = taskForGETMethod("", parameters: parameters) { (results, error) in
             
             // check for errors and call the completion handler
             if let error = error {
                 
                 print(error)
-                completionHandlerForGetResults(success: false, results: nil, error: error)
+                completionHandlerForGetResults(false, nil, error)
             }
             else {
                 if let results = results as? [String:AnyObject] {
                     
-                    completionHandlerForGetResults(success: true, results: results, error: nil)
+                    completionHandlerForGetResults(true, results, nil)
                 }
                 else {
                     let userInfo = [NSLocalizedDescriptionKey : WSClient.ErrorMessage.HttpDataTaskFailed]
                     
-                    completionHandlerForGetResults(success: false, results: nil, error: NSError(domain: "getDataAccessGetResults", code: 2, userInfo: userInfo))
+                    completionHandlerForGetResults(false, nil, NSError(domain: "getDataAccessGetResults", code: 2, userInfo: userInfo))
                 }
             }
         }
     }
     
     //# MARK: - URL Request Data Tasks
-    private func taskForGETMethod(method: String, parameters: [String:AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    fileprivate func taskForGETMethod(_ method: String, parameters: [String:AnyObject], completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
         
         //  build the URL, Configure the request
-        let request = NSMutableURLRequest(URL: otmAuthURLFromParameters(parameters, withPathExtension: method))
+        let request = URLRequest(url: otmAuthURLFromParameters(parameters, withPathExtension: method))
         
         print("request: \(request)")
         
         // make the request
-        let task = session.dataTaskWithRequest(request) { (data, response, error) in
+        let task = session.dataTask(with: request) { (data, response, error) in
             
-            func sendError(error: NSError?, localError: String) {
+            func sendError(_ error: Error?, localError: String) {
                 
-                print(error, localError)
+                print(error ?? "", localError)
                 let userInfo = [NSLocalizedDescriptionKey : localError]
                 
-                completionHandlerForGET(result: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+                completionHandlerForGET(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
             }
             
             // check for errors
             if let error = error {
                 
-                if error.code == NSURLErrorTimedOut {
+                if error._code == NSURLErrorTimedOut {
                     sendError(error, localError: WSClient.ErrorMessage.NetworkTimeout)
                     return
                 }
             }
             
             guard (error == nil) else {
-                sendError(error, localError: WSClient.ErrorMessage.GeneralHttpRequestError.stringByAppendingString("\(error?.localizedDescription != nil ? error?.localizedDescription : "[No description]")"))
+                sendError(error, localError: WSClient.ErrorMessage.GeneralHttpRequestError + "\(String(describing: error?.localizedDescription != nil ? error?.localizedDescription : "[No description]"))")
                 return
             }
             
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
                 sendError(error, localError: WSClient.ErrorMessage.StatusCodeFailure)
                 return
             }
@@ -161,37 +161,37 @@ class WSClient {
 
     
     //# MARK: - URL Creation
-    private func otmAuthURLFromParameters(parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
+    fileprivate func otmAuthURLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
         
-        let components = NSURLComponents()
+        var components = URLComponents()
         components.scheme = WSClient.AuthConstants.ApiScheme
         components.host = WSClient.AuthConstants.ApiHost
         components.path = WSClient.AuthConstants.ApiPath + (withPathExtension ?? "")
-        components.queryItems = [NSURLQueryItem]()
+        components.queryItems = [URLQueryItem]()
         
         for (key, value) in parameters {
-            let queryItem = NSURLQueryItem(name: key, value: "\(value)")
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
             components.queryItems!.append(queryItem)
         }
         
-        return components.URL!
+        return components.url!
     }
 
     
     //# MARK: JSON conversion
-    func convertDataWithCompletionHandler(data: NSData, offset: Int, completionHandlerForConvertData: (result: AnyObject!, error: NSError?) -> Void) {
+    func convertDataWithCompletionHandler(_ data: Data, offset: Int, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
         
-        var parsedResult: AnyObject!
+        var parsedResult: Any!
         do {
-            let newData = data.subdataWithRange(NSMakeRange(offset, data.length - offset))
-            parsedResult = try NSJSONSerialization.JSONObjectWithData(newData, options: .AllowFragments)
+            let newData = data.subdata(in: offset ..< data.count - offset)
+            parsedResult = try JSONSerialization.jsonObject(with: newData, options: .allowFragments)
         } catch {
-            let userInfo = [NSLocalizedDescriptionKey : WSClient.ErrorMessage.JsonParseError.stringByAppendingString("\(data)")]
+            let userInfo = [NSLocalizedDescriptionKey : WSClient.ErrorMessage.JsonParseError + "\(data)"]
             
-            completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         
-        completionHandlerForConvertData(result: parsedResult, error: nil)
+        completionHandlerForConvertData(parsedResult as AnyObject, nil)
     }
     
     //# Shared Instance

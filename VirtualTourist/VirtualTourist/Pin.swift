@@ -12,12 +12,12 @@ import CoreData
 class Pin: NSManagedObject {
 
     convenience init(latitude: Double, longitude: Double, title: String, context: NSManagedObjectContext) {
-        if let ent = NSEntityDescription.entityForName("Pin",
-                                                       inManagedObjectContext: context){
-            self.init(entity: ent, insertIntoManagedObjectContext: context)
+        if let ent = NSEntityDescription.entity(forEntityName: "Pin",
+                                                       in: context){
+            self.init(entity: ent, insertInto: context)
             self.title = title
-            self.latitude = latitude
-            self.longitude = longitude
+            self.latitude = latitude as NSNumber
+            self.longitude = longitude as NSNumber
             self.imageSet = 1
         }
         else {

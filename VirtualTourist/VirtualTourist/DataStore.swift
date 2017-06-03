@@ -8,6 +8,41 @@
 
 import Foundation
 import CoreData
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 
 class DataStore {
     
@@ -17,7 +52,7 @@ class DataStore {
     
     
     //# MARK: - Data Model
-    func createPin(latitude: Double, longitude: Double, title: String) -> Pin {
+    func createPin(_ latitude: Double, longitude: Double, title: String) -> Pin {
 
         let pin = Pin(latitude: latitude, longitude: longitude, title: title, context: self.stack.context)
         self.pins.append(pin)
@@ -25,69 +60,69 @@ class DataStore {
         return pin
     }
     
-    private func createImageData(url: String) -> ImageData {
+    fileprivate func createImageData(_ url: String) -> ImageData {
         
         let imageData = ImageData(url: url, context: stack.context)
         return imageData
     }
     
-    func deleteImageData(imageData: ImageData, deleteCompletionHandler: (success: Bool, error: NSError?) -> Void) {
+    func deleteImageData(_ imageData: ImageData, deleteCompletionHandler: @escaping (_ success: Bool, _ error: NSError?) -> Void) {
         
-        stack.context.deleteObject(imageData)
+        stack.context.delete(imageData)
 
         saveContext() { (success, error) in
             
             if success {
-                deleteCompletionHandler(success: true, error: nil)
+                deleteCompletionHandler(true, nil)
             }
             else {
-                deleteCompletionHandler(success: false, error: error)
+                deleteCompletionHandler(false, error)
             }
         }
     }
     
-    func saveContext(saveCompletionHandler: (success: Bool, error: NSError?) -> Void) {
+    func saveContext(_ saveCompletionHandler: @escaping (_ success: Bool, _ error: NSError?) -> Void) {
         
-        dispatch_async(Utils.GlobalMainQueue) {
+        Utils.GlobalMainQueue.async {
             if self.stack.context.hasChanges {
                 do {
                     try self.stack.context.save()
                     
-                    saveCompletionHandler(success: true, error: nil)
+                    saveCompletionHandler(true, nil)
                 }
                 catch {
                     let userInfo = [NSLocalizedDescriptionKey : "Error occured in saveContext"]
                     print(userInfo)
                     
-                    saveCompletionHandler(success: false, error: NSError(domain: "saveContext", code: 1, userInfo: userInfo))
+                    saveCompletionHandler(false, NSError(domain: "saveContext", code: 1, userInfo: userInfo))
                 }
             }
         }
     }
     
-    func loadPins(loadPinsCompletionHandler: (success: Bool, error: NSError?) -> Void) {
+    func loadPins(_ loadPinsCompletionHandler: (_ success: Bool, _ error: NSError?) -> Void) {
 
-        let fetchRequest = NSFetchRequest()
-        let entityDescription = NSEntityDescription.entityForName("Pin", inManagedObjectContext: self.stack.context)
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>()
+        let entityDescription = NSEntityDescription.entity(forEntityName: "Pin", in: self.stack.context)
         fetchRequest.entity = entityDescription
         
         do {
-            let result = try self.stack.context.executeFetchRequest(fetchRequest)
+            let result = try self.stack.context.fetch(fetchRequest)
             self.pins = result as! [Pin]
             
-            loadPinsCompletionHandler(success: true, error: nil)
+            loadPinsCompletionHandler(true, nil)
             
         } catch {
             let fetchError = error as NSError
             print(fetchError)
             
-            loadPinsCompletionHandler(success: false, error: fetchError)
+            loadPinsCompletionHandler(false, fetchError)
         }
     }
     
     
     //# MARK: - Load/Access Images
-    func getImages(pin: Pin, getCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+    func getImages(_ pin: Pin, getCompletionHandler : @escaping (_ success: Bool, _ results: Pin, _ error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
@@ -96,7 +131,7 @@ class DataStore {
         if pin.imageDatas?.count > 0 {
             print("Using locally saved image data.")
             
-            getCompletionHandler(success: true, results: pin, error: nil)
+            getCompletionHandler(true, pin, nil)
         }
         else {
             print("Loading image data from web service.")
@@ -104,7 +139,7 @@ class DataStore {
             WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
                 
                 if success {
-                    dispatch_async(Utils.GlobalMainQueue) {
+                    Utils.GlobalMainQueue.async {
                         
                         var imageDatas = [ImageData]()
                         
@@ -120,24 +155,24 @@ class DataStore {
                         self.saveContext() { (success, error) in
                             
                             if !success {
-                                print(error)
-                                getCompletionHandler(success: false, results: pin, error: error)
+                                print(error as Any)
+                                getCompletionHandler(false, pin, error)
                             }
                         }
                         
                         // return with success
-                        getCompletionHandler(success: true, results: pin, error: nil)
+                        getCompletionHandler(true, pin, nil)
                     }
                 }
                 else {
-                    print(error)
-                    getCompletionHandler(success: false, results: pin, error: error)
+                    print(error as Any)
+                    getCompletionHandler(false, pin, error)
                 }
             }
         }
     }
 
-    func loadNewImages(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+    func loadNewImages(_ pin: Pin, reloadCompletionHandler : @escaping (_ success: Bool, _ results: Pin, _ error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
@@ -149,7 +184,7 @@ class DataStore {
         WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
             
             if success {
-                dispatch_async(Utils.GlobalMainQueue) {
+                Utils.GlobalMainQueue.async {
                     
                     var imageDatas = [ImageData]()
                     
@@ -164,7 +199,7 @@ class DataStore {
                         
                         // check existing image data, if url is known
                         let filter = NSPredicate(format: "url == %@", result)
-                        let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
+                        let filteredImages = pin.imageDatas?.filtered(using: filter)
                         
                         if Constants.AddImagesWithoutDeletion {
                             
@@ -192,8 +227,8 @@ class DataStore {
                             DataStore.sharedInstance().deleteImageData(id as! ImageData) { (success, error) in
                                 
                                 if !success {
-                                    print(error)
-                                    reloadCompletionHandler(success: false, results: pin, error: error)
+                                    print(error as Any)
+                                    reloadCompletionHandler(false, pin, error)
                                     return
                                 }
                             }
@@ -201,7 +236,7 @@ class DataStore {
                     }
                     
                     pin.imageDatas = NSSet(array: imageDatas)
-                    pin.imageSet = page
+                    pin.imageSet = page as NSNumber
                     
                     // if no more pages are available, reset counter (keep it simple)
                     if Int(pin.imageSet!) >= results?.pages {
@@ -211,23 +246,23 @@ class DataStore {
                     self.saveContext() { (success, error) in
                         
                         if !success {
-                            print(error)
-                            reloadCompletionHandler(success: false, results: pin, error: error)
+                            print(error as Any)
+                            reloadCompletionHandler(false, pin, error)
                         }
                     }
                     
                     // return with success
-                    reloadCompletionHandler(success: true, results: pin, error: nil)
+                    reloadCompletionHandler(true, pin, nil)
                 }
             }
             else {
-                print(error)
-                reloadCompletionHandler(success: false, results: pin, error: error)
+                print(error as Any)
+                reloadCompletionHandler(false, pin, error)
             }
         }
     }
     
-    func loadImagesAfterPinMoved(pin: Pin, reloadCompletionHandler : (success: Bool, results: Pin, error: NSError?) -> Void) {
+    func loadImagesAfterPinMoved(_ pin: Pin, reloadCompletionHandler : @escaping (_ success: Bool, _ results: Pin, _ error: NSError?) -> Void) {
         
         let lat = Double(pin.latitude!)
         let lon = Double(pin.longitude!)
@@ -239,7 +274,7 @@ class DataStore {
         WSClient.sharedInstance().getImages(lat, longitude: lon, page: page) { (success, results, error) in
             
             if success {
-                dispatch_async(Utils.GlobalMainQueue) {
+                Utils.GlobalMainQueue.async {
                     
                     var imageDatas = [ImageData]()
                     
@@ -248,7 +283,7 @@ class DataStore {
                         
                         // check existing image data, if url is known
                         let filter = NSPredicate(format: "url == %@", result)
-                        let filteredImages = pin.imageDatas?.filteredSetUsingPredicate(filter)
+                        let filteredImages = pin.imageDatas?.filtered(using: filter)
                         
                         // if there is a match, add available image - else add new
                         if filteredImages?.count > 0 {
@@ -267,8 +302,8 @@ class DataStore {
                             DataStore.sharedInstance().deleteImageData(id as! ImageData) { (success, error) in
                                 
                                 if !success {
-                                    print(error)
-                                    reloadCompletionHandler(success: false, results: pin, error: error)
+                                    print(error as Any)
+                                    reloadCompletionHandler(false, pin, error)
                                     return
                                 }
                             }
@@ -276,7 +311,7 @@ class DataStore {
                     }
 
                     pin.imageDatas = NSSet(array: imageDatas)
-                    pin.imageSet = page
+                    pin.imageSet = page as NSNumber
                     
                     // if no more pages are available, reset counter (keep it simple)
                     if Int(pin.imageSet!) >= results?.pages {
@@ -286,19 +321,19 @@ class DataStore {
                     self.saveContext() { (success, error) in
                         
                         if !success {
-                            print(error)
-                            reloadCompletionHandler(success: false, results: pin, error: error)
+                            print(error as Any)
+                            reloadCompletionHandler(false, pin, error)
                             return
                         }
                     }
                     
                     // return with success
-                    reloadCompletionHandler(success: true, results: pin, error: nil)
+                    reloadCompletionHandler(true, pin, nil)
                 }
             }
             else {
-                print(error)
-                reloadCompletionHandler(success: false, results: pin, error: error)
+                print(error as Any)
+                reloadCompletionHandler(false, pin, error)
             }
         }
     }

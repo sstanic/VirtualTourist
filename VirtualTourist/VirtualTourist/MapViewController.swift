@@ -8,6 +8,30 @@
 
 import UIKit
 import MapKit
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 class MapViewController: UIViewController, MKMapViewDelegate {
     
@@ -27,19 +51,19 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         initializePins()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         
-        self.navigationController?.navigationBarHidden = true
+        self.navigationController?.isNavigationBarHidden = true
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         
-        self.navigationController?.navigationBarHidden = false
+        self.navigationController?.isNavigationBarHidden = false
     }
 
     
     //# MARK: - Initialize
-    private func initializeMap() {
+    fileprivate func initializeMap() {
         
         mapView.delegate = self
         
@@ -48,10 +72,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         mapView.addGestureRecognizer(gestureRecognizerLongPress)
         
         // init region
-        let latitude = NSUserDefaults.standardUserDefaults().doubleForKey(Constants.MapLatitude)
-        let longitude = NSUserDefaults.standardUserDefaults().doubleForKey(Constants.MapLongitude)
-        let latitudeDelta = NSUserDefaults.standardUserDefaults().doubleForKey(Constants.MapLatitudeDelta)
-        let longitudeDelta = NSUserDefaults.standardUserDefaults().doubleForKey(Constants.MapLongitudeDelta)
+        let latitude = UserDefaults.standard.double(forKey: Constants.MapLatitude)
+        let longitude = UserDefaults.standard.double(forKey: Constants.MapLongitude)
+        let latitudeDelta = UserDefaults.standard.double(forKey: Constants.MapLatitudeDelta)
+        let longitudeDelta = UserDefaults.standard.double(forKey: Constants.MapLongitudeDelta)
         
         let location = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let coordinateSpan = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
@@ -61,12 +85,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         mapView.setRegion(region, animated: true)
     }
     
-    private func initializePins() {
+    fileprivate func initializePins() {
         
         DataStore.sharedInstance().loadPins() { (success, error) in
             
             if !success {
-                print(error)
+                print(error as Any)
                 Utils.showAlert(self, alertMessage: "An error occured while loading map data from the data base.", completion: nil)
             }
         }
@@ -82,18 +106,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     
     //# MARK: - Pin, Image, Geocode
-    @objc func createNewPin(gestureRecognizer: UILongPressGestureRecognizer) {
+    @objc func createNewPin(_ gestureRecognizer: UILongPressGestureRecognizer) {
         
-        var touchPoint: CGPoint = gestureRecognizer.locationInView(mapView)
-        var touchMapCoordinate: CLLocationCoordinate2D = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
+        var touchPoint: CGPoint = gestureRecognizer.location(in: mapView)
+        var touchMapCoordinate: CLLocationCoordinate2D = mapView.convert(touchPoint, toCoordinateFrom: mapView)
         
         switch gestureRecognizer.state {
             
-        case .Began:
+        case .began:
             newMapItem = MapItem(title: "<...>", location: touchMapCoordinate)
             mapView.addAnnotation(newMapItem!)
             
-        case .Ended:
+        case .ended:
             geocodeMapItem(newMapItem!) { (success, error) in
                 
                 if success {
@@ -102,14 +126,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     self.showImages(pin)
                 }
                 else {
-                    print(error)
+                    print(error as Any)
                     Utils.showAlert(self, alertMessage: "An error occured while creating a new pin.", completion: nil)
                 }
             }
             
-        case .Changed:
-            touchPoint = gestureRecognizer.locationInView(mapView)
-            touchMapCoordinate = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
+        case .changed:
+            touchPoint = gestureRecognizer.location(in: mapView)
+            touchMapCoordinate = mapView.convert(touchPoint, toCoordinateFrom: mapView)
             
             mapView.removeAnnotation(newMapItem!)
             newMapItem = MapItem(title: ".", location: touchMapCoordinate)
@@ -120,15 +144,15 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    private func showImages(pin: Pin) {
+    fileprivate func showImages(_ pin: Pin) {
         
-        let photoAlbumViewController = self.storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
+        let photoAlbumViewController = self.storyboard!.instantiateViewController(withIdentifier: "photoAlbumViewController") as! PhotoAlbumViewController
         photoAlbumViewController.pin = pin
         
         navigationController?.pushViewController(photoAlbumViewController, animated: true)
     }
     
-    private func geocodeMapItem(mapItem: MapItem, geocodeCompletionHandler: (success: Bool, error: NSError?) -> Void) {
+    fileprivate func geocodeMapItem(_ mapItem: MapItem, geocodeCompletionHandler: @escaping (_ success: Bool, _ error: NSError?) -> Void) {
         
         var address = ""
         let location = CLLocation(latitude: mapItem.coordinate.latitude, longitude: mapItem.coordinate.longitude)
@@ -137,17 +161,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             
             if error != nil {
                 mapItem.title = "<unknown>"
-                geocodeCompletionHandler(success: false, error: error)
+                geocodeCompletionHandler(false, error! as NSError)
                 return
             }
             else {
                 if (placemark?.count > 0) {
                     for al in placemark?.first!.addressDictionary?["FormattedAddressLines"] as! NSArray {
                         if address == "" {
-                            address = address.stringByAppendingString(al as! String)
+                            address = address + (al as! String)
                         }
                         else {
-                            address = address.stringByAppendingString(" -- ").stringByAppendingString(al as! String)
+                            address = (address + " -- ") + (al as! String)
                         }
                     }
                 }
@@ -155,13 +179,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             
             mapItem.title = address
             
-            geocodeCompletionHandler(success: true, error: nil)
+            geocodeCompletionHandler(true, nil)
         }
     }
     
     
     //# MARK: - MKMapViewDelegate
-    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
         if annotation is MKUserLocation {
             return nil
@@ -170,7 +194,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         let identifier = "pin"
         var view: MKPinAnnotationView
         
-        if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier) as? MKPinAnnotationView {
+        if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView {
             
             dequeuedView.annotation = annotation
             view = dequeuedView
@@ -179,15 +203,15 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             view.canShowCallout = true
             view.calloutOffset = CGPoint(x: -5, y: 5)
-            let btn = UIButton(type: .DetailDisclosure)
+            let btn = UIButton(type: .detailDisclosure)
             view.rightCalloutAccessoryView = btn as UIView
-            view.draggable = true
+            view.isDraggable = true
         }
         
         return view
     }
     
-    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
         if control == view.rightCalloutAccessoryView {
             
@@ -209,33 +233,33 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 //        }
 //    }
     
-    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, didChange newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
         
-        if newState == MKAnnotationViewDragState.Ending {
+        if newState == MKAnnotationViewDragState.ending {
             
             if let mapItem = view.annotation as? MapItem {
                 
-                dispatch_async(Utils.GlobalBackgroundQueue) {
+                Utils.GlobalBackgroundQueue.async {
                     
                     self.geocodeMapItem(mapItem) { (success, error) in
                         
                         if success {
                             let pin = mapItem.pin
-                            pin?.latitude = mapItem.coordinate.latitude
-                            pin?.longitude = mapItem.coordinate.longitude
+                            pin?.latitude = mapItem.coordinate.latitude as NSNumber
+                            pin?.longitude = mapItem.coordinate.longitude as NSNumber
                             
                             pin?.title = mapItem.title
                             pin?.imageSet = 1
                             DataStore.sharedInstance().loadImagesAfterPinMoved(pin!) { (success, results, error) in
                                 
                                 if !success {
-                                    print(error)
+                                    print(error as Any)
                                     Utils.showAlert(self, alertMessage: "An error occured while trying to load new images.", completion: nil)
                                 }
                             }
                         }
                         else {
-                            print(error)
+                            print(error as Any)
                             Utils.showAlert(self, alertMessage: "An error occured while dragging the map pin.", completion: nil)
                         }
                     }
@@ -244,11 +268,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         
-        NSUserDefaults.standardUserDefaults().setDouble(mapView.region.center.latitude, forKey: Constants.MapLatitude)
-        NSUserDefaults.standardUserDefaults().setDouble(mapView.region.center.longitude, forKey: Constants.MapLongitude)
-        NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.latitudeDelta, forKey: Constants.MapLatitudeDelta)
-        NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.longitudeDelta, forKey: Constants.MapLongitudeDelta)
+        UserDefaults.standard.set(mapView.region.center.latitude, forKey: Constants.MapLatitude)
+        UserDefaults.standard.set(mapView.region.center.longitude, forKey: Constants.MapLongitude)
+        UserDefaults.standard.set(mapView.region.span.latitudeDelta, forKey: Constants.MapLatitudeDelta)
+        UserDefaults.standard.set(mapView.region.span.longitudeDelta, forKey: Constants.MapLongitudeDelta)
     }
 }
